@@ -10,9 +10,11 @@ class HashService {
 
   private lazy val factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA1")
 
+  private lazy val random = new Random()
+
   def newSalt(): Array[Byte] = {
-    val bytes = Array[Byte](16)
-    new Random().nextBytes(bytes)
+    val bytes = new Array[Byte](16)
+    random.nextBytes(bytes)
     bytes
   }
 

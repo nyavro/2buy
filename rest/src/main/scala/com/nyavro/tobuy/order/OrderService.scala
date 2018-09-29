@@ -13,14 +13,14 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.util.Random
 
 trait OrderService {
-  def modify(orderId: Long, productId: Long, initiatorUserId: Long, count: Int, comment: String): Future[Boolean]
+  def modify(orderId: Long, initiatorUserId: Long, count: Int, comment: Option[String], version: Int): Future[Option[Int]]
   def create(productIds: List[Long], initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Option[Int]]
   def reject(orderId: Long, productId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Option[Int]]
 }
 
 class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends OrderService {
 
-  override def modify(orderId: Long, initiatorUserId: Long, count: Int, comment: String, version: Int): Future[Option[Int]] =
+  override def modify(orderId: Long, initiatorUserId: Long, count: Int, comment: Option[String], version: Int): Future[Option[Int]] =
     db.run(
       {
         val q = for {order <- Order if order.id === orderId && order.version === version} yield order.count

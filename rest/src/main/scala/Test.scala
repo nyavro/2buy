@@ -1,4 +1,5 @@
 import com.nyavro.tobuy.group.GroupServiceImpl
+import com.nyavro.tobuy.product.ProductServiceImpl
 import com.nyavro.tobuy.services.security.HashService
 import com.nyavro.tobuy.user.UserServiceImpl
 import com.nyavro.tobuy.util.{UtilService, UtilServiceImpl}
@@ -27,9 +28,10 @@ object Test {
       val utilService = new UtilServiceImpl(db)
       val userService = new UserServiceImpl(db, new HashService())
       val groupService = new GroupServiceImpl(db)
+      val productService = new ProductServiceImpl(db)
 
       val total = for {
-        r <- utilService.clean(List("order_history", "Order", "Product", "user_group", "Group", "User")).map(log)
+        r <- utilService.clean(List("Order_History", "Order", "Product", "User_Group", "Group", "User")).map(log)
         //----User-create---
         u1 <- userService.create("user1", "heyEny").map(logM("users created:"))
         u2 <- userService.create("user2", "heyEny").map(logM("users created:"))
@@ -55,6 +57,11 @@ object Test {
         //----Group-delete---
         user2TryingToDeleteGroup1 <- groupService.delete(group1Id, user2Id.get).recover{case _ => "Unabled to delete group. Not own group"}.map(logM("User removes group:"))
         user1TryingToDeleteGroup1 <- groupService.delete(group1Id, user1Id.get).map(logM("User removes group:"))
+        //----Product-add---
+        product1 <- productService.add("product1").map(logM("new product:"))
+        product2 <- productService.add("product2").map(logM("new product:"))
+        //----Product-list---
+        products <- productService.list().map(logM("products:"))
       } yield v
       total.onComplete {
         case Success(v) => println("Succeeded: " + v)

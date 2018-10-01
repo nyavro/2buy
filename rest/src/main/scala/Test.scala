@@ -56,6 +56,9 @@ object Test {
         //----Group-join---
         user2joinsGroup1 <- groupService.join(group1Id, user2Id.get).map(logM("User joined group:"))
         joinJoinedGroup <- groupService.join(group1Id, user2Id.get).recover{case _ => "Already in group"}.map(logM("User joined group:"))
+        //----Group-leave---
+        user2leavesGroup1 <- groupService.leave(group1Id, user2Id.get).map(logM("User left group:"))
+        user2joinsGroup1 <- groupService.join(group1Id, user2Id.get).map(logM("User joined group:"))
         //----Group-delete---
         user2TryingToDeleteGroup1 <- groupService.delete(group3Id, user2Id.get).recover{case _ => "Unabled to delete group. Not own group"}.map(logM("User removes group:"))
         user1TryingToDeleteGroup1 <- groupService.delete(group3Id, user1Id.get).map(logM("User removes group:"))
@@ -70,6 +73,8 @@ object Test {
         nonGroupUserFailsToCreateOrder <- orderService.create(Set(product2, product3), user1Id.get, group2Id, None).recover{case _ => "Cannot create order in group"}.map(logM("create order:"))
         //----Order-list
         list1 <- orderService.list(group1Id).map(logM("group orders:"))
+        if list1.nonEmpty
+        _ <- orderService.modify(list1.head.id, user1Id.get, 2, None, 0)
       } yield v
       total.onComplete {
         case Success(v) => println("Succeeded: " + v)

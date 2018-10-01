@@ -11,6 +11,7 @@ trait GroupService {
   def delete(groupId: Long, initiatorUserId: Long): Future[Int]
   def userGroups(userId: Long): Future[Seq[(String, Long)]]
   def join(groupId: Long, userId: Long): Future[Int]
+  def leave(groupId: Long, userId: Long): Future[Int]
 }
 
 class GroupServiceImpl(db: Database)(implicit ec: ExecutionContext) extends GroupService {
@@ -57,4 +58,15 @@ class GroupServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Grou
     db.run(
       UserGroup += UserGroupRow(userId, groupId)
     )
+
+  override def leave(groupId: Long, userId: Long): Future[Int] =
+    db.run {
+      val q1 = Group.filter(group => group.id === groupId && group.ownerUserId =!= userId).result.headOption
+      val q2 = UserGroup.filter(userGroup => userGroup.groupId === groupId && userGroup.userId === userId)
+      for {
+        v1 <- q1
+        if v1.isDefined
+        r <- q2.delete
+      } yield r
+    }
 }

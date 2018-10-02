@@ -7,5 +7,7 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-stream" % "2.5.16",
   "io.jsonwebtoken" % "jjwt" % "0.9.1",
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.5",
-  "org.scalatest" %% "scalatest" % "3.0.5" % "test"
+  "org.scalatest" %% "scalatest" % "3.0.5" % "test",
+  "ch.qos.logback" % "logback-classic" % "1.2.3",
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0"
 )

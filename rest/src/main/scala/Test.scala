@@ -5,6 +5,7 @@ import com.nyavro.tobuy.services.security.HashService
 import com.nyavro.tobuy.user.UserServiceImpl
 import com.nyavro.tobuy.util.{UtilService, UtilServiceImpl}
 import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.LazyLogging
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
@@ -13,9 +14,15 @@ import slick.driver.PostgresDriver
 import scala.concurrent.Future
 import scala.util.{Failure, Success}
 
-object Test {
+
+class Test
+
+object Test extends LazyLogging {
 
   def main(args: Array[String]): Unit = {
+
+//    val logger = Logger[Test]
+    logger.debug("Test")
 
     def log[A](v: A): A = logM("")(v)
 
@@ -23,7 +30,6 @@ object Test {
       println(msg + v)
       v
     }
-
     val db = Database.forConfig("2buy")
     try {
       val utilService = new UtilServiceImpl(db)
@@ -74,7 +80,8 @@ object Test {
         //----Order-list
         list1 <- orderService.list(group1Id).map(logM("group orders:"))
         if list1.nonEmpty
-        _ <- orderService.modify(list1.head.id, user1Id.get, 2, None, 0)
+        _ <- orderService.modify(list1.head.id, user1Id.get, 0, Some("Done"), 0).map(logM("modified: "))
+        list1m <- orderService.list(group1Id).map(logM("group orders:"))
       } yield v
       total.onComplete {
         case Success(v) => println("Succeeded: " + v)

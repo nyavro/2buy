@@ -9,5 +9,5 @@ object OrderStatus extends Enumeration {
 case class User(id: Long, name: String)
 case class Group(id: Long, name: String)
 case class Product(id: Long, name: String)
-case class Order(id: Long, product: Product, count: Int, comment: Option[String], status: OrderStatus.Value)
+case class Order(id: Long, product: Product, count: Int, comment: Option[String], status: OrderStatus.Value, version: Int)
 

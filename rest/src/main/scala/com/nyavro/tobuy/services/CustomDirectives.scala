@@ -2,7 +2,7 @@ package com.nyavro.tobuy.services
 
 import akka.http.scaladsl.server._
 
-class Directives(authService:AuthService) {
+class CustomDirectives(authService:AuthService) {
 
   val TokenHeader = "Token"
 

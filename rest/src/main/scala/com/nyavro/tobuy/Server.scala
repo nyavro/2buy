@@ -4,7 +4,7 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
-import com.nyavro.tobuy.services.AuthService
+import com.nyavro.tobuy.services.{AuthService, CustomDirectives}
 import com.nyavro.tobuy.services.security.{Base64Wrapper, HashService, TokenServiceImpl}
 import com.typesafe.config.ConfigFactory
 import slick.jdbc.PostgresProfile.api._
@@ -17,6 +17,7 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.headers.Allow
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{MethodRejection, RejectionHandler}
+import com.nyavro.tobuy.product.{ProductRoute, ProductServiceImpl}
 import spray.json.BasicFormats
 
 import scala.io.StdIn
@@ -50,16 +51,11 @@ object Server extends SprayJsonSupport with BasicFormats with DefaultJsonProtoco
     val db = Database.forConfig("2buy")
     val authService = new AuthService(db, new HashService())
     val tokenService = new TokenServiceImpl(new Base64Wrapper("secret"))
+    val productService = new ProductServiceImpl(db)
+    val directives = new CustomDirectives()
     try {
       val routes =
-        path("product") {
-          post {
-            complete(HttpEntity(ContentTypes.`text/plain(UTF-8)` ,"Order saved"))
-          } ~
-          get {
-            complete(HttpEntity(ContentTypes.`text/html(UTF-8)`, "<h1>Say hello to akka-http</h1>"))
-          }
-        } ~
+        new ProductRoute(productService, directives).route ~
         path("auth") {
           path("create") {
             post {

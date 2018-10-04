@@ -1,7 +1,7 @@
-package com.nyavro.tobuy.services
+package com.nyavro.tobuy.auth
 
-import com.nyavro.tobuy.services.security.{Base64Encoded, HashService, TokenUser}
 import com.nyavro.tobuy.gen.Tables._
+import com.nyavro.tobuy.services.security.{Base64Encoded, HashService, TokenUser}
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}

@@ -4,7 +4,6 @@ import akka.http.scaladsl.Http
 import akka.http.scaladsl.model._
 import akka.http.scaladsl.server.Directives._
 import akka.stream.ActorMaterializer
-import com.nyavro.tobuy.services.{AuthService, CustomDirectives}
 import com.nyavro.tobuy.services.security.{Base64Wrapper, HashService, TokenServiceImpl}
 import com.typesafe.config.ConfigFactory
 import slick.jdbc.PostgresProfile.api._
@@ -17,13 +16,15 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.headers.Allow
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{MethodRejection, RejectionHandler}
+import com.nyavro.tobuy.auth.{AuthDirectives, AuthRoute, AuthService}
 import com.nyavro.tobuy.product.{ProductRoute, ProductServiceImpl}
+import com.nyavro.tobuy.group.{GroupRoute, GroupServiceImpl}
 import spray.json.BasicFormats
+import com.nyavro.tobuy.services.security.Cors
 
 import scala.io.StdIn
 
-object Server extends SprayJsonSupport with BasicFormats with DefaultJsonProtocol {
-  private case class  LoginRequest(login: String, password: String)
+object Server extends SprayJsonSupport with BasicFormats with DefaultJsonProtocol with Cors {
 
   def main(args: Array[String]) {
 
@@ -31,7 +32,6 @@ object Server extends SprayJsonSupport with BasicFormats with DefaultJsonProtoco
     implicit val materializer = ActorMaterializer()
     // needed for the future flatMap/onComplete in the end
     implicit val executionContext = system.dispatcher
-    implicit val loginPasswordFormat = jsonFormat2(LoginRequest)
 
     implicit def rejectionHandler = RejectionHandler.newBuilder()
       .handleAll[MethodRejection] { rejections =>
@@ -43,7 +43,7 @@ object Server extends SprayJsonSupport with BasicFormats with DefaultJsonProtoco
           complete(s"Supported methods : $names.")
         } ~
           complete(MethodNotAllowed,
-            s"HTTP method not allowed, supported methods111: $names!")
+            s"HTTP method not allowed, supported methods : $names!")
       }
     }
       .result()
@@ -52,32 +52,14 @@ object Server extends SprayJsonSupport with BasicFormats with DefaultJsonProtoco
     val authService = new AuthService(db, new HashService())
     val tokenService = new TokenServiceImpl(new Base64Wrapper("secret"))
     val productService = new ProductServiceImpl(db)
-    val directives = new CustomDirectives()
+    val groupService = new GroupServiceImpl(db)
+    val directives = new AuthDirectives(tokenService)
     try {
-      val routes =
+      val routes = corsHandler (
+        new AuthRoute(authService, tokenService).route ~
         new ProductRoute(productService, directives).route ~
-        path("auth") {
-          path("create") {
-            post {
-              entity(as[LoginRequest]) { loginRequest =>
-                complete(authService.register(loginRequest.login, loginRequest.password).map(_ => "OK"))
-              }
-            }
-          } ~
-          post {
-            entity(as[LoginRequest]) { loginRequest =>
-              complete(
-                authService
-                  .authenticate(loginRequest.login, loginRequest.password)
-                  .map(
-                    userOp =>
-                      userOp.fold("Invalid"){user => tokenService.createToken(user)}
-                  )
-              )
-            }
-          }
-        }
-
+        new GroupRoute(groupService, directives).route
+      )
       val port = 8087
       val bindingFuture = Http().bindAndHandle(routes, "localhost", port)
 

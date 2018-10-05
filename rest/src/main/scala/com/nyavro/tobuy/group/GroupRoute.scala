@@ -30,10 +30,10 @@ class GroupRoute(service: GroupService, directives: AuthDirectives)(
 
   case class GroupCreate(name: String)
 
-  case class GroupJoin(id: Long)
+  case class GroupRequest(id: Long)
 
   implicit val createFormat = jsonFormat1(GroupCreate)
-  implicit val joinFormat = jsonFormat1(GroupJoin)
+  implicit val joinFormat = jsonFormat1(GroupRequest)
 
 
   override def route: Route = directives.authenticate { loggedUser =>
@@ -56,7 +56,7 @@ class GroupRoute(service: GroupService, directives: AuthDirectives)(
         } ~
         path("join") {
           post {
-            entity(as[GroupJoin]) { groupJoin =>
+            entity(as[GroupRequest]) { groupJoin =>
               complete(
                 service.join(groupJoin.id, loggedUser.id).map(_.toString)
               )
@@ -65,7 +65,7 @@ class GroupRoute(service: GroupService, directives: AuthDirectives)(
         } ~
         path("leave") {
           post {
-            entity(as[GroupJoin]) { groupJoin =>
+            entity(as[GroupRequest]) { groupJoin =>
               complete(
                 service.leave(groupJoin.id, loggedUser.id).map(_.toString)
               )
@@ -74,16 +74,20 @@ class GroupRoute(service: GroupService, directives: AuthDirectives)(
         } ~
         path("delete") {
           post {
-            entity(as[GroupJoin]) { groupJoin =>
+            entity(as[GroupRequest]) { groupJoin =>
               complete(
                 service.delete(groupJoin.id, loggedUser.id).map(_.toString)
               )
             }
           }
         } ~
-        path("test") {
-          get {
-            complete(OK)
+        path("members") {
+          post {
+            entity(as[GroupRequest]) { groupJoin =>
+              complete(
+                service.groupMembers(groupJoin.id, loggedUser.id)
+              )
+            }
           }
         }
     }

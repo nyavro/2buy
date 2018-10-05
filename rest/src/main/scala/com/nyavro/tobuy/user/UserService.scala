@@ -23,11 +23,11 @@ class UserServiceImpl(db: Database, hashService: HashService)(implicit ec: Execu
     db
       .run (
         User
-          .filter(_.name === login)
+          .filter(_.login === login)
           .result
           .headOption
       )
       .map(
-        _.find {user => hashService.check(password, user.salt, Base64Encoded(user.passwordHash))}.map (user => (user.id, user.name))
+        _.collect {case user if hashService.check(password, user.salt, Base64Encoded(user.passwordHash)) => (user.id, user.name)}
       )
 }

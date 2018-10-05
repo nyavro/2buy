@@ -12,6 +12,7 @@ trait GroupService {
   def userGroups(userId: Long): Future[Seq[(String, Long)]]
   def join(groupId: Long, userId: Long): Future[Int]
   def leave(groupId: Long, userId: Long): Future[Int]
+  def groupMembers(groupId: Long, userId: Long): Future[Seq[(Long, String)]]
 }
 
 class GroupServiceImpl(db: Database)(implicit ec: ExecutionContext) extends GroupService {
@@ -69,4 +70,14 @@ class GroupServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Grou
         r <- q2.delete
       } yield r
     }
+
+  override def groupMembers(groupId: Long, userId: Long): Future[Seq[(Long, String)]] =
+    db
+      .run {
+        for {
+          ug <- UserGroup.filter(ug => ug.groupId === groupId && ug.userId === userId).result.headOption
+          if ug.isDefined
+          u <- UserGroup.filter(_.groupId === groupId).join(User).on(_.userId === _.id).map {case (_, u) => (u.id, u.name)}.result
+        } yield u
+      }
 }

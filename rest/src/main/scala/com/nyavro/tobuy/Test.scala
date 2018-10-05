@@ -63,6 +63,11 @@ object Test extends LazyLogging {
         //----Group-leave---
         user2leavesGroup1 <- groupService.leave(group1Id, u2Id).map(log("User left group:"))
         user2joinsGroup1 <- groupService.join(group1Id, u2Id).map(log("User joined group:"))
+        //----Group-groupMembers---
+        _ <- groupService.groupMembers(group1Id, u1Id).map(log("Group members: "))
+        _ <- groupService.groupMembers(group2Id, u1Id).recover{case _ => "Cannot list foreign group members"}.map(log("Group members: "))
+        _ <- groupService.groupMembers(group1Id, u2Id).map(log("Group members: "))
+        _ <- groupService.groupMembers(group2Id, u2Id).map(log("Group members: "))
         //----Group-delete---
         user2TryingToDeleteGroup1 <- groupService.delete(group3Id, u2Id).recover{case _ => "Unabled to delete group. Not own group"}.map(log("User removes group:"))
         user1TryingToDeleteGroup1 <- groupService.delete(group3Id, u1Id).map(log("User removes group:"))

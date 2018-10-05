@@ -16,11 +16,12 @@ import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.headers.Allow
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{MethodRejection, RejectionHandler}
-import com.nyavro.tobuy.auth.{AuthDirectives, AuthRoute, AuthService}
+import com.nyavro.tobuy.auth.{AuthDirectives, AuthRoute}
 import com.nyavro.tobuy.product.{ProductRoute, ProductServiceImpl}
 import com.nyavro.tobuy.group.{GroupRoute, GroupServiceImpl}
 import spray.json.BasicFormats
 import com.nyavro.tobuy.services.security.Cors
+import com.nyavro.tobuy.user.{UserService, UserServiceImpl}
 
 import scala.io.StdIn
 
@@ -49,14 +50,14 @@ object Server extends SprayJsonSupport with BasicFormats with DefaultJsonProtoco
       .result()
 
     val db = Database.forConfig("2buy")
-    val authService = new AuthService(db, new HashService())
+    val userService = new UserServiceImpl(db, new HashService())
     val tokenService = new TokenServiceImpl(new Base64Wrapper("secret"))
     val productService = new ProductServiceImpl(db)
     val groupService = new GroupServiceImpl(db)
     val directives = new AuthDirectives(tokenService)
     try {
       val routes = corsHandler (
-        new AuthRoute(authService, tokenService).route ~
+        new AuthRoute(userService, tokenService).route ~
         new ProductRoute(productService, directives).route ~
         new GroupRoute(groupService, directives).route
       )

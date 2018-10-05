@@ -87,19 +87,5 @@ class GroupRoute(service: GroupService, directives: AuthDirectives)(
           }
         }
     }
-    //    path("view") {
-    //      post {
-    //        complete(service.userGroups(1L))
-    //      }
-    //    }
-    //    ~
-    //    pathEndOrSingleSlash {
-    //      post {
-    //        entity(as[ProductCreate]) {
-    //          case ProductCreate(name) => complete(service.add(name).map(_.toString))
-    //        }
-    //      }
-    //    }
-
   }
 }

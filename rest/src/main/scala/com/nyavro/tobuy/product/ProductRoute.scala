@@ -20,16 +20,18 @@ class ProductRoute(service: ProductService, directives: AuthDirectives)(
 ) extends RouteProvider with SprayJsonSupport with DefaultJsonProtocol {
   implicit val format = jsonFormat1(ProductCreate)
 
-  override def route: Route = pathPrefix("product") {
-    path("view") {
-      post {
-        complete(service.list())
-      }
-    } ~
-    pathEndOrSingleSlash {
-      post {
-        entity(as[ProductCreate]) {
-          case ProductCreate(name) => complete(service.add(name).map(_.toString))
+  override def route: Route = directives.authenticate { _ =>
+    pathPrefix("product") {
+      path("view") {
+        post {
+          complete(service.list())
+        }
+      } ~
+      pathEndOrSingleSlash {
+        post {
+          entity(as[ProductCreate]) {
+            case ProductCreate(name) => complete(service.add(name).map(_.toString))
+          }
         }
       }
     }

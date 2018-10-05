@@ -9,15 +9,15 @@ import scala.concurrent.{ExecutionContext, Future}
 case class OrderResponse(product: String, count: Int, orderId: Long, state: String, comment: Option[String])
 
 trait OrderService {
-  def modify(orderId: Long, initiatorUserId: Long, count: Int, comment: Option[String], version: Int): Future[Option[Int]]
+  def modify(orderId: Long, initiatorUserId: Long, count: Int, comment: Option[String], version: Int): Future[Boolean]
   def create(productIds: Set[Long], initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Option[Int]]
   def reject(orderId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Option[Int]]
-  def list(groupId: Long): Future[Seq[models.Order]]
+  def list(groupId: Long, userId: Long): Future[Seq[models.Order]]
 }
 
 class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends OrderService {
 
-  override def modify(orderId: Long, initiatorUserId: Long, count: Int, comment: Option[String], version: Int): Future[Option[Int]] =
+  override def modify(orderId: Long, initiatorUserId: Long, count: Int, comment: Option[String], version: Int): Future[Boolean] =
     db.run(
       {
         val q = for {order <- Order if order.id === orderId && order.version === version} yield (order.count, order.version)
@@ -27,7 +27,7 @@ class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Orde
           up <- q.update(count, version+1)
           if up > 0
           ins <- q2
-        } yield if (up> 0) Some(up) else None).transactionally
+        } yield ins > 0).transactionally
       }
     )
 
@@ -53,12 +53,14 @@ class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Orde
       } yield if (ins>0) Some(ins) else None).transactionally
     }
 
-  override def list(groupId: Long): Future[Seq[models.Order]] =
+  override def list(groupId: Long, userId: Long): Future[Seq[models.Order]] =
     db.run {
-      Order.filter(_.groupId === groupId)
-        .join(Product).on(_.productId===_.id)
-        .joinLeft(OrderHistory).on {case ((order, _), history) => order.id === history.orderId}
-        .map {case ((order, product), history) => (order, product, history.map(item => (item.status, item.comment)))}
+      UserGroup
+        .filter(ug => ug.groupId === groupId && ug.userId === userId)
+        .join(Order).on(_.groupId === _.groupId)
+        .join(Product).on(_._2.productId === _.id)
+        .joinLeft(OrderHistory).on {case (((_, order), _), history) => order.id === history.orderId}
+        .map {case (((_,order), product), history) => (order, product, history.map(item => (item.status, item.comment)))}
         .result
     }.map {
       _.map {

@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        // позволять компилировать js файлы
+        "allowJs": true,
+        // "outDir": "./dist/",
+        // нужно ыключить sourcemap в вебпаке
+        // "sourceMap": true,
+        "noImplicitAny": true,
+        // какой модуль генерировать
+        // https://medium.com/computed-comparisons/commonjs-vs-amd-vs-requirejs-vs-es6-modules-2e814b114a0b
+        "module": "es6",
+        // к какой версии es преобрапзовывать
+        "target": "es2015",
+        // поддержка jsx
+        "jsx": "react",
+        "baseUrl": "src",
+        "moduleResolution": "node",
+        "noUnusedParameters": true,
+        "noUnusedLocals": false
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "node_modules",
+        // "**/*.spec.ts"
+    ]
+}

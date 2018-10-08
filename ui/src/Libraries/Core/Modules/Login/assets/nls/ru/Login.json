@@ -1,0 +1,19 @@
+{
+  "Form": {
+    "Login": {
+      "label": "Логин",
+      "placeholder": "Введите логин"
+    },
+    "Password": {
+      "label": "Пароль",
+      "placeholder": "Введите пароль"
+    },
+    "Submit": {
+      "label": "Войти"
+    },
+    "Error": {
+      "badCredentials": "Логин или пароль неверны",
+      "serviceUnavailable": "Сервис авторизации недоступен"
+    }
+  }
+}

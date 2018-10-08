@@ -1,0 +1,50 @@
+{
+    "Create": {
+        "title": "Запись на ТО",
+        "district": {
+            "label": "Район",
+            "placeholder": "Выберите район"
+        },
+        "operation": {
+            "label": "Операция",
+            "placeholder": "Выберите операцию"
+        },
+        "period": {
+            "label": "Время дня",
+            "placeholder": "Выберите время дня"
+        },
+        "date": {
+            "label": "Дата",
+            "placeholder": "Выберите дату"
+        }
+    },
+    "List": {
+        "empty": "Список заявок пуст"
+    },
+    "View": {
+        "title": "Заявка на обслуживание",
+        "searchingProvider": "Ищем исполнителя",
+        "cancel": "Отменить"
+    },
+    "Action": {
+        "requestService": "Записаться",
+        "viewOrder": "Посмотреть",
+        "cancel": "Отменить"
+    },
+    "Notification": {
+        "create": {
+            "success": {
+                "message": "Подбираем наилучший вариант",
+                "title": "Запрос на осблуживание создан"
+            },
+            "error": {
+                "message": "Попробуйте повторить попытку позднее",
+                "title": "Ошибка создания запроса"
+            }
+        }
+    },
+    "Status": {
+        "selectingProvider": "Подбор исполнителя",
+        "providerSelected": "Назначен исполнитель"
+    }
+}

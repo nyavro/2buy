@@ -1,0 +1,7 @@
+{
+  "DayPeriod": {
+    "MORNING": "Утро",
+    "MIDDAY": "День",
+    "EVENING": "Вечер"
+  }
+}

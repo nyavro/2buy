@@ -1,0 +1,22 @@
+{
+    "EditForm": {
+        "title": "Запись на ТО",
+        "district": {
+            "label": "Район",
+            "title": "Выберите район"
+        },
+        "operation": {
+            "label": "Услуга",
+            "title": "Выберите услугу"
+        }
+    },
+    "Actions": {
+        "requestService": "Записаться"
+    },
+    "List": {
+        "empty": "Нет заказов"
+    },
+    "View": {
+        "title": "Запись"
+    }
+}

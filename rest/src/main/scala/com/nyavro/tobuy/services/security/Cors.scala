@@ -11,8 +11,7 @@ trait Cors{
   private val corsResponseHeaders = List(
     `Access-Control-Allow-Origin`.*,
     `Access-Control-Allow-Credentials`(true),
-    `Access-Control-Allow-Headers`("Authorization",
-      "Content-Type", "X-Requested-With")
+    `Access-Control-Allow-Headers`("Authorization", "Content-Type", "X-Requested-With", "Token")
   )
 
   //this directive adds access control headers to normal responses

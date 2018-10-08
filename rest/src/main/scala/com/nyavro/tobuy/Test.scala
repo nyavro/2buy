@@ -52,8 +52,8 @@ object Test extends LazyLogging {
         groups1 <- groupService.userGroups(u1Id).map(log("groups found:"))
         //----Group-userGroups---
         groups2 <- groupService.userGroups(u2Id).map(log("groups found:"))
-        v = groups1
-        if groups1.nonEmpty
+        v = groups1.items
+        if groups1.pagination.count > 0
         //----Group-rename---
         renamed <- groupService.rename(group1Id, "group1renamed", u1Id).map(log("group renamed:"))
         notRenamed <- groupService.rename(group1Id, "group1renamedByUser2", u2Id).map(log("group renamed:"))

@@ -1,27 +1,19 @@
 package com.nyavro.tobuy
 import akka.actor.ActorSystem
 import akka.http.scaladsl.Http
-import akka.http.scaladsl.model._
-import akka.http.scaladsl.server.Directives._
-import akka.stream.ActorMaterializer
-import com.nyavro.tobuy.services.security.{Base64Wrapper, HashService, TokenServiceImpl}
-import com.typesafe.config.ConfigFactory
-import slick.jdbc.PostgresProfile.api._
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
-
-import scala.concurrent.ExecutionContext.Implicits.global
-import slick.driver.PostgresDriver
-import spray.json._
 import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.model.headers.Allow
 import akka.http.scaladsl.server.Directives._
 import akka.http.scaladsl.server.{MethodRejection, RejectionHandler}
+import akka.stream.ActorMaterializer
 import com.nyavro.tobuy.auth.{AuthDirectives, AuthRoute}
-import com.nyavro.tobuy.product.{ProductRoute, ProductServiceImpl}
 import com.nyavro.tobuy.group.{GroupRoute, GroupServiceImpl}
-import spray.json.BasicFormats
-import com.nyavro.tobuy.services.security.Cors
-import com.nyavro.tobuy.user.{UserService, UserServiceImpl}
+import com.nyavro.tobuy.product.{ProductRoute, ProductServiceImpl}
+import com.nyavro.tobuy.services.security.{Base64Wrapper, Cors, HashService, TokenServiceImpl}
+import com.nyavro.tobuy.user.UserServiceImpl
+import slick.jdbc.PostgresProfile.api._
+import spray.json.{BasicFormats, _}
 
 import scala.io.StdIn
 

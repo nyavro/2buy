@@ -8,5 +8,6 @@ libraryDependencies ++= Seq(
   "com.typesafe.akka" %% "akka-http-spray-json" % "10.1.5",
   "org.scalatest" %% "scalatest" % "3.0.5" % "test",
   "ch.qos.logback" % "logback-classic" % "1.2.3",
-  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0"
+  "com.typesafe.scala-logging" %% "scala-logging" % "3.9.0",
+  "joda-time" % "joda-time" % "2.10"
 )

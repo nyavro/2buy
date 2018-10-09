@@ -1,3 +1,4 @@
+import {isEmpty, memoize} from 'lodash';
 import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {IAsyncData, IPaginatedItems} from 'Libraries/Core/Models';
@@ -6,8 +7,9 @@ import {IGroupContext, IGroupModule, IGroupView} from '../Models';
 import {SyncLoader} from 'react-spinners';
 import {GroupActions} from "../Actions/GroupActions";
 import {GroupService} from "../Services/GroupService";
+import {convert, serverFormatFull, timeFormatShort} from "../../../Libraries/Core/Utils/DateUtils";
 
-require('../assets/Order.styl');
+require('../assets/Group.styl');
 require('../assets/nls/ru/Order.json');
 
 interface IOwnProps {
@@ -27,17 +29,33 @@ type TProps = IOwnProps & IDispatchProps & IStateProps;
 class GroupListPage extends React.Component<TProps, {}> {
 
     componentWillMount() {
-        this.props.actions.list({count: 12, offset: 0, hasNextPage: false});
+        if (isEmpty(this.props.list.data)) {
+            console.log("Getting list");
+            this.props.actions.list({count: 12, offset: 0, hasNextPage: false});
+        }
     }
 
-    handleGroupSelect = (id: string) => () => {
+    handleGroupSelect = memoize((id: string) => () => {
         console.log(id);
+    });
+
+    renderGroup = ({id, name, lastActivity}: IGroupView, index: number) => {
+        return (
+            <div key={index} className="group-item">
+                <div className="group-caption" onClick={this.handleGroupSelect(id)}>
+                    {name}
+                </div>
+                <div className="last-activity">
+                    {convert(lastActivity, serverFormatFull, timeFormatShort)}
+                </div>
+            </div>
+        );
     };
 
     renderGroups = () => {
         const {list} = this.props;
         return (list && list.data && list.data.items || []).map(
-            ({id, name}, index) => <div key={index} onClick={this.handleGroupSelect(id)}>{name}</div>
+            (group, index) => this.renderGroup(group, index)
         );
     };
 

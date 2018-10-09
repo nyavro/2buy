@@ -115,13 +115,13 @@ export class ClientLayoutComponent extends React.Component<TProps, IState> {
                                 <Row>
                                     <Col>
                                         <Switch>
-                                            <Route exact path={ROUTES.ROOT} render={this.renderWithProps(GroupListPage, {...props})}/>
-                                            <Route exact path={ROUTES.CAR.LIST} render={this.renderWithProps(GroupListPage, {...props})}/>
-                                            <Route exact path={ROUTES.ORDER_REQUEST.CREATE} render={this.renderWithRouterProps(OrderRequestCreatePage, {...props})}/>
-                                            <Route exact path={ROUTES.ORDER_REQUEST.LIST} render={this.renderWithProps(OrderRequestsListPage, {...props})}/>
-                                            <Route exact path={ROUTES.ORDER.LIST} render={this.renderWithProps(OrdersListPage, {...props})}/>
-                                            <Route exact path={ROUTES.ORDER.DETAILS} render={this.renderWithRouterProps(OrderDetailsPage, {...props})}/>
-                                            <Route exact path={ROUTES.SERVICE.ERROR} component={CriticalPage}/>
+                                            {/*<Route exact path={ROUTES.ROOT} render={this.renderWithProps(GroupListPage, {...props})}/>*/}
+                                            {/*<Route exact path={ROUTES.CAR.LIST} render={this.renderWithProps(GroupListPage, {...props})}/>*/}
+                                            {/*<Route exact path={ROUTES.ORDER_REQUEST.CREATE} render={this.renderWithRouterProps(OrderRequestCreatePage, {...props})}/>*/}
+                                            {/*<Route exact path={ROUTES.ORDER_REQUEST.LIST} render={this.renderWithProps(OrderRequestsListPage, {...props})}/>*/}
+                                            {/*<Route exact path={ROUTES.ORDER.LIST} render={this.renderWithProps(OrdersListPage, {...props})}/>*/}
+                                            {/*<Route exact path={ROUTES.ORDER.DETAILS} render={this.renderWithRouterProps(OrderDetailsPage, {...props})}/>*/}
+                                            {/*<Route exact path={ROUTES.SERVICE.ERROR} component={CriticalPage}/>*/}
                                         </Switch>
                                     </Col>
                                 </Row>

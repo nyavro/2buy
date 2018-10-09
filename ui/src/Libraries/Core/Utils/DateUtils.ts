@@ -4,6 +4,10 @@ export const serverFormat = 'YYYY-MM-DD';
 
 export const dateFormat = 'DD.MM.YYYY';
 
+export const serverFormatFull = 'YYYY-MM-DD hh:mm:ss';
+
+export const timeFormatShort = 'hh:mm:ss';
+
 export const strToDate = (dateString: string, format = serverFormat) => (moment(dateString, format));
 
 export const getToday = (format = serverFormat) => moment(moment().format(serverFormat), serverFormat).format(format);

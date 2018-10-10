@@ -21,14 +21,6 @@ export interface ISort {
 }
 
 export interface IPagination {
-    first?: boolean;
-    last?: false;
-    number?: number;
-    numberOfElements?: number;
-    size?: number;
-    totalElements?: number;
-    totalPages?: number;
-    sort?: ISort[];
     count?: number;
     offset?: number;
     hasNextPage?: boolean;

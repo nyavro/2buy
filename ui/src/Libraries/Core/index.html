@@ -5,70 +5,70 @@
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" async></script>
     <script>
         window.oneSignal = {};
-        var OneSignal = OneSignal || [];
-        console.log('Initialization of OneSignal');
-        const updateToken = () =>
-            OneSignal.getUserId().then(
-                (r) => {
-                    console.log('token', r);
-                    window.oneSignal.token = r;
-                    const {tokenChangeHandler} = window.oneSignal;
-                    if (tokenChangeHandler) {
-                        tokenChangeHandler(r);
-                    }
-                }
-            );
-        OneSignal.push(function() {
-            OneSignal.init({
-                    appId: '0f000493-e9cb-4fdd-b145-91e7b75509c5',
-                    safariWebId: 'web.onesignal.auto.3e92607c-8739-4c7c-a9d2-0fad99546ed2',
-                    autoRegister: false,
-                    notificationClickHandlerMatch: 'origin',
-                    notificationClickHandlerAction: 'focus',
-                    promptOptions: {
-                        /* These prompt options values configure both the HTTP prompt and the HTTP popup. */
-                        /* actionMessage limited to 90 characters */
-                        actionMessage: "Мы будем присылать информацию о ваших заказах",
-                        /* acceptButtonText limited to 15 characters */
-                        acceptButtonText: "Разрешить",
-                        /* cancelButtonText limited to 15 characters */
-                        cancelButtonText: "Отказаться"
-                    },
-                    notifyButton: {
-                        enable: false
-                    }
-                }
-            );
-            OneSignal.isPushNotificationsEnabled()
-                .then(
-                    (isEnabled) => {
-                        console.log('showHttpPrompt isEnabled=' + isEnabled);
-                        return (isEnabled ?
-                            updateToken() :
-                            OneSignal.showHttpPrompt().then(() => {
-                                console.log('registerForPushNotifications');
-                                OneSignal.registerForPushNotifications();
-                            })
-                        );
-                    }
-                );
-            OneSignal.on(
-                'subscriptionChange',
-                function (isSubscribed) {
-                    console.log("The user's subscription state is now:", isSubscribed);
-                    console.log("Updating token");
-                    updateToken();
-                }
-            );
-            OneSignal.on(
-                'notificationDisplay',
-                function (event) {
-                    if (event.data && window.oneSignal.pushHandler) {
-                        window.oneSignal.pushHandler(event);
-                    }
-                }
-            );
-        });
+//        var OneSignal = OneSignal || [];
+//        console.log('Initialization of OneSignal');
+//        const updateToken = () =>
+//            OneSignal.getUserId().then(
+//                (r) => {
+//                    console.log('token', r);
+//                    window.oneSignal.token = r;
+//                    const {tokenChangeHandler} = window.oneSignal;
+//                    if (tokenChangeHandler) {
+//                        tokenChangeHandler(r);
+//                    }
+//                }
+//            );
+//        OneSignal.push(function() {
+//            OneSignal.init({
+//                    appId: '0f000493-e9cb-4fdd-b145-91e7b75509c5',
+//                    safariWebId: 'web.onesignal.auto.3e92607c-8739-4c7c-a9d2-0fad99546ed2',
+//                    autoRegister: false,
+//                    notificationClickHandlerMatch: 'origin',
+//                    notificationClickHandlerAction: 'focus',
+//                    promptOptions: {
+//                        /* These prompt options values configure both the HTTP prompt and the HTTP popup. */
+//                        /* actionMessage limited to 90 characters */
+//                        actionMessage: "Мы будем присылать информацию о ваших заказах",
+//                        /* acceptButtonText limited to 15 characters */
+//                        acceptButtonText: "Разрешить",
+//                        /* cancelButtonText limited to 15 characters */
+//                        cancelButtonText: "Отказаться"
+//                    },
+//                    notifyButton: {
+//                        enable: false
+//                    }
+//                }
+//            );
+//            OneSignal.isPushNotificationsEnabled()
+//                .then(
+//                    (isEnabled) => {
+//                        console.log('showHttpPrompt isEnabled=' + isEnabled);
+//                        return (isEnabled ?
+//                            updateToken() :
+//                            OneSignal.showHttpPrompt().then(() => {
+//                                console.log('registerForPushNotifications');
+//                                OneSignal.registerForPushNotifications();
+//                            })
+//                        );
+//                    }
+//                );
+//            OneSignal.on(
+//                'subscriptionChange',
+//                function (isSubscribed) {
+//                    console.log("The user's subscription state is now:", isSubscribed);
+//                    console.log("Updating token");
+//                    updateToken();
+//                }
+//            );
+//            OneSignal.on(
+//                'notificationDisplay',
+//                function (event) {
+//                    if (event.data && window.oneSignal.pushHandler) {
+//                        window.oneSignal.pushHandler(event);
+//                    }
+//                }
+//            );
+//        });
     </script>
 </head>
 <body>

@@ -14,6 +14,7 @@ require('../assets/nls/ru/Order.json');
 
 interface IOwnProps {
     context: IGroupContext;
+    onGroupChange: (groupId: string) => void;
 }
 
 interface IDispatchProps {
@@ -36,7 +37,7 @@ class GroupListPage extends React.Component<TProps, {}> {
     }
 
     handleGroupSelect = memoize((id: string) => () => {
-        console.log(id);
+        this.props.onGroupChange(id);
     });
 
     renderGroup = ({id, name, lastActivity}: IGroupView, index: number) => {

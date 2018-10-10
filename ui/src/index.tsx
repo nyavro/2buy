@@ -2,10 +2,8 @@ import * as React from 'react';
 import * as ReactDOM from 'react-dom';
 import {applyMiddleware, combineReducers, createStore, Dispatch} from 'redux';
 import {Provider} from 'react-redux';
-import {clientsReducer, initialState as clientsInitial} from 'Applications/Client/Modules/Client/Reducers/ClientReducers';
-import {orderRequestReducer, initialState as orderRequestInitial} from 'Applications/Client/Modules/OrderRequest/Reducers/OrderRequestReducer';
-import {orderReducer, initialState as orderInitial} from 'Applications/Client/Modules/Order/Reducers/OrderReducer';
 import {groupReducer, initialState as groupInitial} from 'Modules/Group/Reducers/GroupReducers'
+import {orderReducer, initialState as orderInitial} from 'Modules/Order/Reducers/OrderReducers'
 import {HashRouter as Router, Route, Switch} from 'react-router-dom';
 import LoginPage from 'Libraries/Core/Modules/Login/Pages/LoginPage';
 import {push, routerMiddleware, routerReducer} from 'react-router-redux';
@@ -13,12 +11,12 @@ import createHistory from 'history/createHashHistory';
 import {loginReducer, initialState as authInitial} from 'Libraries/Core/Modules/Login/Reducers/LoginReducers';
 import {notificationReducer, initialState as notificationInitial} from 'Libraries/Core/Modules/Notification/Reducers/NotificationReducers';
 import {LOGOUT_ACTION} from 'Libraries/Core/Modules/Login/Actions/ActionTypes';
-import {IClientAppState} from 'Applications/Client/Models';
-import './Applications/Client/Config';
-import {ROUTES} from 'Applications/Client/RouterConsts';
+import {IClientAppState} from 'Modules/Main/Models';
+import './Modules/Main/Config';
+import {ROUTES} from 'Modules/Main/RouterConsts';
 import {dictionaryReducer, initialState as dictionaryInitial} from 'Libraries/Core/Modules/Dictionary/Reducers/DictionaryReducers';
-import {ClientLayout} from 'Applications/Client/ClientLayout';
-import {ClientContext} from 'Applications/Client/Config';
+import {ClientLayout} from 'Modules/Main/ClientLayout';
+import {ClientContext} from 'Modules/Main/Config';
 import {IAuth} from 'Libraries/Core/Modules/Login/Models';
 import {RouteProps} from 'react-router';
 require('Libraries/Core/assets/styles/Core.styl');
@@ -32,10 +30,8 @@ Moment.locale('ru');
 momentLocalizer();
 
 export const getInitialState = () => ({
-    client: clientsInitial(),
     auth: authInitial(),
     dictionary: dictionaryInitial(),
-    orderRequest: orderRequestInitial(),
     notification: notificationInitial(),
     order: orderInitial(),
     group: groupInitial()
@@ -48,11 +44,9 @@ export const store = createStore(
         }
         return combineReducers(
             {
-                client: clientsReducer,
                 auth: loginReducer,
                 dictionary: dictionaryReducer,
                 routing: routerReducer,
-                orderRequest: orderRequestReducer,
                 order: orderReducer,
                 notification: notificationReducer,
                 group: groupReducer

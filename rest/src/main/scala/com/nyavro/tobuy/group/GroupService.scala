@@ -53,14 +53,14 @@ class GroupServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Grou
     db.run {
       UserGroup
         .filter(_.userId===userId)
-        .drop(pagination.offset)
-        .take(pagination.count + 1)
+        .drop(pagination.offsetValue)
+        .take(pagination.countValue + 1)
         .join(Group).on(_.groupId===_.id)
         .result
-    }.map (items =>
-      PaginatedItems(
-        Pagination(pagination.offset, items.size, items.size>pagination.count),
-        items.take(pagination.count).map{case (_, group) => GroupView(group.id, group.name, group.lastActivity)}
+    }.map (res =>
+      PaginatedItems.toPage(
+        res.map{case (_, group) => GroupView(group.id, group.name, group.lastActivity)},
+        pagination
       )
     )
 

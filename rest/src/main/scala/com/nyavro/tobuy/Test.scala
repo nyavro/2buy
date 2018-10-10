@@ -53,7 +53,7 @@ object Test extends LazyLogging {
         //----Group-userGroups---
         groups2 <- groupService.userGroups(u2Id).map(log("groups found:"))
         v = groups1.items
-        if groups1.pagination.count > 0
+        if groups1.pagination.count.getOrElse(0) > 0
         //----Group-rename---
         renamed <- groupService.rename(group1Id, "group1renamed", u1Id).map(log("group renamed:"))
         notRenamed <- groupService.rename(group1Id, "group1renamedByUser2", u2Id).map(log("group renamed:"))
@@ -82,15 +82,15 @@ object Test extends LazyLogging {
         nonGroupUserFailsToCreateOrder <- orderService.create(Set(product2, product3), u1Id, group2Id, None).recover{case _ => "Cannot create order in group"}.map(log("create order:"))
         //----Order-list
         list1 <- orderService.list(group1Id, u1Id).map(log("group orders:"))
-        if list1.nonEmpty
-        order0Id = list1.head.id
-        order1Id = list1.drop(1).head.id
+        if list1.items.nonEmpty
+        order0Id = list1.items.head.id
+        order1Id = list1.items.drop(1).head.id
         //----Order-modify
-        _ <- orderService.modify(order0Id, u1Id, 0, Some("Done"), 0).map(log("modified: ")).map(log("modify:"))
-        _ <- orderService.modify(order0Id, u2Id, 2, Some("More"), 0).map(log("modified: ")).recover{case _ => "Cannot modify - optimistic lock"}.map(log(""))
+        _ <- orderService.modify(order0Id, group1Id, u1Id, 0, Some("Done"), 0).map(log("modified: ")).map(log("modify:"))
+        _ <- orderService.modify(order0Id, group1Id, u2Id, 2, Some("More"), 0).map(log("modified: ")).recover{case _ => "Cannot modify - optimistic lock"}.map(log(""))
         //----Order-reject
         v = log("ids: ")(order0Id + " " + order1Id)
-        _ <- orderService.reject(order1Id, u1Id, Some("Won't"), 0).map(log("modified: ")).recover{case e => "Cannot reject - optimistic lock" + e.toString}.map(log(""))
+        _ <- orderService.reject(order1Id, group1Id, u1Id, Some("Won't"), 0).map(log("modified: ")).recover{case e => "Cannot reject - optimistic lock" + e.toString}.map(log(""))
         list1m <- orderService.list(group1Id, u1Id).map(log("group orders:"))
       } yield v
       total.onComplete {

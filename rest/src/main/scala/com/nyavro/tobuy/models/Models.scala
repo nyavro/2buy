@@ -15,6 +15,20 @@ case class Order(id: Long, product: Product, count: Int, comment: Option[String]
 
 case class GroupView(id: Long, name: String, lastActivity: Date)
 
-case class Pagination(offset: Int = 0, count: Int = 100, hasNextPage: Boolean = false)
+case class Pagination(offset: Option[Int] = None, count: Option[Int] = None, hasNextPage: Option[Boolean] = None) {
+  def DefaultOffset = 0
+  def DefaultCount = 100
+
+  def offsetValue: Int = offset.getOrElse(DefaultOffset)
+  def countValue: Int = count.getOrElse(DefaultCount)
+}
+
 case class PaginatedItems[T](pagination: Pagination, items: Seq[T])
+
+object PaginatedItems {
+  def toPage[T](items: Seq[T], pagination: Pagination): PaginatedItems[T] = {
+    val res = items.take(pagination.countValue)
+    PaginatedItems(Pagination(Some(pagination.offsetValue), Some(res.size), Some(items.size > pagination.countValue)), res)
+  }
+}
 

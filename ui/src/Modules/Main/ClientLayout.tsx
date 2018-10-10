@@ -15,8 +15,8 @@ import {MainMenu} from 'Libraries/Components/MainMenu';
 import GroupListPage from "../Group/Pages/GroupListPage";
 import OrderList from "../Order/Components/OrderList";
 
-require('../../Applications/Client/assets/nls/ru/ClientApp.json');
-require('../../Applications/Client/assets/styles/Layout.styl');
+require('./assets/nls/ru/ClientApp.json');
+require('./assets/styles/Layout.styl');
 
 interface IContextProps {
     context: IClientAppContext;

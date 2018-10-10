@@ -123,7 +123,7 @@ module.exports = (cmdEnv) => {
             new CleanWebpackPlugin([buildDir]), // чистка директории dist
             new ExtractTextPlugin('[name].css'), // весь css кладет в отдельный бандл
             new CopyPlugin(
-                ['Applications/' + capitalizeFirstLetter(env.ENDPOINT) + '/assets', 'manifest.json'].map(
+                ['manifest.json'].map(
                     (item) => ({
                         from: 'src/' + item,
                         to: ''

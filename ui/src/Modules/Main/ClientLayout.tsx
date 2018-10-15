@@ -62,7 +62,6 @@ export class ClientLayoutComponent extends React.Component<TProps, IState> {
     ];
 
     handleGroupChange = (groupId: string) => {
-        debugger;
         this.setState({groupId});
     };
 
@@ -80,7 +79,7 @@ export class ClientLayoutComponent extends React.Component<TProps, IState> {
                         <OrderList {...props} groupId={this.state.groupId}/>
                     </div>
                     <div className="layout-panel group-details col-xl-3">
-                        Group details
+
                     </div>
                 </Row>
                 <NotificationPanel/>

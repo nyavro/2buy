@@ -8,6 +8,7 @@ import {SyncLoader} from 'react-spinners';
 import {GroupActions} from "../Actions/GroupActions";
 import {GroupService} from "../Services/GroupService";
 import {convert, serverFormatFull, timeFormatShort} from "../../../Libraries/Core/Utils/DateUtils";
+import {Button, Row} from "reactstrap";
 
 require('../assets/Group.styl');
 require('../assets/nls/ru/Order.json');
@@ -25,45 +26,61 @@ interface IStateProps {
     list: IAsyncData<IPaginatedItems<IGroupView>>;
 }
 
+interface IState {
+    activeGroupId?: string;
+}
+
 type TProps = IOwnProps & IDispatchProps & IStateProps;
 
-class GroupListPage extends React.Component<TProps, {}> {
+class GroupListPage extends React.Component<TProps, IState> {
+
+    state: IState = {
+    };
 
     componentWillMount() {
         if (isEmpty(this.props.list.data)) {
             console.log("Getting list");
-            this.props.actions.list({count: 12, offset: 0, hasNextPage: false});
+            this.props.actions.list({});
         }
     }
 
     handleGroupSelect = memoize((id: string) => () => {
+        console.log("Group changed: " + id);
+        this.setState({activeGroupId: id});
         this.props.onGroupChange(id);
     });
 
-    renderGroup = ({id, name, lastActivity}: IGroupView, index: number) => {
-        return (
-            <div key={index} className="group-item">
-                <div className="group-caption" onClick={this.handleGroupSelect(id)}>
-                    {name}
-                </div>
-                <div className="last-activity">
-                    {convert(lastActivity, serverFormatFull, timeFormatShort)}
-                </div>
-            </div>
-        );
+    handleRefresh = () => {
+        this.props.actions.list({})
     };
 
     renderGroups = () => {
         const {list} = this.props;
+        const {activeGroupId} = this.state;
         return (list && list.data && list.data.items || []).map(
-            (group, index) => this.renderGroup(group, index)
+            ({id, name, lastActivity}, index) => {
+                return (
+                    <Row key={index} className={'group-item' + (id === activeGroupId ? ' active' : '')} onClick={this.handleGroupSelect(id)}>
+                        <div className="group-caption">
+                            {name}
+                        </div>
+                        <div className="last-activity">
+                            {convert(lastActivity, serverFormatFull, timeFormatShort)}
+                        </div>
+                    </Row>
+                )
+            }
         );
     };
 
     render() {
         const {list} = this.props;
+        console.log(list.status);
         return (list.status === ELoadingStatus.SUCCESS) ?
-            <div>{this.renderGroups()}</div> :
+            <div>
+                {this.renderGroups()}
+                <Button onClick={this.handleRefresh}>Refresh</Button>
+            </div> :
             <SyncLoader className="spinner" loading/>
     }
 }

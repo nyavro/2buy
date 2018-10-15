@@ -62,11 +62,11 @@ export class GroupActions extends LoginRedirectActions<IGroupService, IGroupRedu
         );
     }
 
-    list(pagination: IPagination) {
+    list(pagination?: IPagination) {
         return asyncDispatch<IPaginatedItems<IGroupView>, IGroupReduxState>(
             this.dispatch,
             LIST_GROUPS,
-            () => this.service.list(pagination)
+            () => this.service.list(pagination || {})
         );
     }
 }

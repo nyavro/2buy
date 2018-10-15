@@ -1,7 +1,8 @@
 import {IHeaders, IRestService} from "./IRestService";
 import {EOperationError} from "../Enums";
+import fetch from 'cross-fetch';
 
-const TIMEOUT = 9000;
+const TIMEOUT = 60000;
 
 export class RestService implements IRestService {
 

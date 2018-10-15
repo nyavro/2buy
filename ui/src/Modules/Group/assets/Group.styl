@@ -1,16 +1,23 @@
 .group-item {
-  &:hover {
-    background-color: #dfefff;
-  }
   height: 60px;
   width: 100%;
   display: table;
+  margin-left: 0;
+  cursor: pointer;
+
+  &:hover {
+    background-color: #dfefff;
+  }
 
   .group-caption {
     display: table-cell;
     vertical-align: middle;
     padding-left: 16px;
     width: 160px;
+  }
+
+  &.active {
+    background-color: #66afe9
   }
 }
 

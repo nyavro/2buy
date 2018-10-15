@@ -3,11 +3,16 @@ import * as React from 'react';
 import {connect, Dispatch} from 'react-redux';
 import {IAsyncData, IPaginatedItems} from 'Libraries/Core/Models';
 import {ELoadingStatus} from 'Libraries/Core/Enums';
-import {IOrderContext, IOrderModule, IOrderView} from '../Models';
+import {EOrderStatus, IOrderContext, IOrderModule, IOrderView} from '../Models';
 import {SyncLoader} from 'react-spinners';
-import {convert, serverFormatFull, timeFormatShort} from 'Libraries/Core/Utils/DateUtils';
 import {OrderService} from '../Services/OrderService';
 import {OrderActions} from '../Actions/OrderActions';
+import {Button, Col, Row} from "reactstrap";
+import {
+    MdCheckBox, MdCheckBoxOutlineBlank, MdComment, MdDashboard, MdExitToApp,
+    MdIndeterminateCheckBox
+} from 'react-icons/md';
+import {SortableContainer, SortableElement} from 'react-sortable-hoc';
 
 require('../assets/Order.styl');
 require('../assets/nls/ru/Order.json');
@@ -27,6 +32,51 @@ interface IStateProps {
 
 type TProps = IOwnProps & IDispatchProps & IStateProps;
 
+const Right = SortableElement((_) =>
+    (<div className="right-catcher">Right</div>)
+);
+
+const SortableItem = SortableElement(({value}) =>
+    {
+        const {id, version, product, count, comment, status} = value;
+        let Icon = MdCheckBoxOutlineBlank;
+        switch(status) {
+            case EOrderStatus.CLOSED:
+                Icon = MdCheckBox;
+                break;
+            case EOrderStatus.REJECTED:
+                Icon = MdIndeterminateCheckBox;
+        }
+        return (
+            <Row className="order-item">
+                <Col className="order-caption">
+                    {product.name}
+                </Col>
+                <Col className="order" lg={1}>
+                    {count > 1 ? count : ''}
+                </Col>
+                <Col className="comment" lg={1}>
+                    {comment && <MdComment/>}
+                </Col>
+                <Col className="status" lg={1}>
+                    <Icon/>
+                </Col>
+            </Row>
+        );
+    }
+);
+
+const SortableList = SortableContainer(({items}: IPaginatedItems<IOrderView>) => {
+    return (<div>
+        <div className="orders-panel">
+        {items.map((value, index) => (
+            <SortableItem key={`item-${index}`} index={index+1} value={value}/>
+        ))}
+        </div>
+        <Right key="item-0" index={0} value={0}/>
+    </div>);
+});
+
 class OrderListPage extends React.Component<TProps, {}> {
 
     componentWillMount() {
@@ -39,9 +89,15 @@ class OrderListPage extends React.Component<TProps, {}> {
         }
     }
 
+    onSortEnd = (v: any) => {
+        const {oldIndex, newIndex} = v;
+        console.log('Old: ' + oldIndex + ' New: ' + newIndex);
+    };
+
     update = (groupId?: string) => {
         const {list, actions} = this.props;
-        if (groupId && isEmpty(list.data)) {
+        console.log("OrderList set groupId: " + groupId);
+        if (groupId) {
             console.log("Getting orders");
             actions.list(groupId, {count: 12, offset: 0, hasNextPage: false});
         }
@@ -51,36 +107,17 @@ class OrderListPage extends React.Component<TProps, {}> {
         console.log(id + ":" + version);
     }, (id: string, version: number) => id + "_" + version);
 
-    renderOrder = ({id, product, count, comment, status, version}: IOrderView, index: number) => {
-        return (
-            <div key={index} className="order-item">
-                <div className="order-caption" onClick={this.handleOrderSelect(id, version)}>
-                    {product.name}
-                </div>
-                <div className="order">
-                    {count}
-                </div>
-                <div className="comment">
-                    {comment}
-                </div>
-                <div  className="status">
-                    {status}
-                </div>
-            </div>
-        );
-    };
-
-    renderOrders = () => {
-        const {list} = this.props;
-        return (list && list.data && list.data.items || []).map(
-            (group, index) => this.renderOrder(group, index)
-        );
+    handleRefresh = () => {
+        this.update(this.props.groupId);
     };
 
     render() {
         const {list, groupId} = this.props;
         return (list.status === ELoadingStatus.SUCCESS) ?
-            <div>{this.renderOrders()}</div> :
+            <div className="order-list">
+                <SortableList lockAxis="x" items={(list && list.data && list.data.items || [])} onSortEnd={this.onSortEnd}/>
+                <Button onClick={this.handleRefresh}>Refresh</Button>
+            </div> :
             (groupId ? <SyncLoader className="spinner" loading/> : <div/>)
     }
 }

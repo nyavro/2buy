@@ -13,6 +13,7 @@ export class GroupService extends AuthorizedRestService implements IGroupService
     }
 
     list(pagination: IPagination): Promise<IPaginatedItems<IGroupView>> {
+        console.log("GroupService.list");
         return this.post(`${this.backendConfig.backend}/group/view`, pagination);
     }
 

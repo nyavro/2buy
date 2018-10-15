@@ -24,7 +24,7 @@ i18n
 
 export default i18n;
 
-const base = 'http://localhost:3000/rest1';
+const base = 'http://localhost:8087';
 
 export const ClientContext: (errorsRoute: string) => IClientAppContext = (errorsRoute: string) => {
     const clientMicroservice = {

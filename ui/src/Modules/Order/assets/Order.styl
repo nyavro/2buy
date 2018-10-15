@@ -1,16 +1,34 @@
-.group-item {
-  &:hover {
-    background-color: #dfefff;
-  }
-  height: 60px;
-  width: 100%;
-  display: table;
+.order-list{
 
-  .group-caption {
-    display: table-cell;
-    vertical-align: middle;
-    padding-left: 16px;
-    width: 160px;
+  .order-item {
+    &:hover {
+      background-color: #dfefff;
+    }
+    height: 60px;
+    width: 100%;
+    display: table;
+
+    .group-caption {
+      display: table-cell;
+      vertical-align: middle;
+      padding-left: 16px;
+      width: 160px;
+    }
+
+    .status {
+      svg {
+        width: 36px;
+        height: 36px;
+      }
+    }
+  }
+
+  .right-catcher {
+    position: absolute;
+    right: 0;
+    top: 0;
+    height: 100%;
+    background-color: red;
   }
 }
 

@@ -70,24 +70,31 @@ class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Orde
       UserGroup
         .filter(ug => ug.groupId === groupId && ug.userId === userId)
         .join(Order).on(_.groupId === _.groupId)
+        .join(User).on{case ((_, o), user) => o.createdByUserId === user.id}
         .drop(pagination.offsetValue)
         .take(pagination.countValue + 1)
-        .join(Product).on(_._2.productId === _.id)
-        .joinLeft(OrderHistory).on {case (((_, order), _), history) => order.id === history.orderId}
-        .map {case (((_,order), product), history) => (order, product, history.map(item => (item.status, item.comment)))}
+        .join(Product).on {case (((ug, o), u), p) => o.productId === p.id}
+        .joinLeft(
+          OrderHistory.join(User).on(_.changedBy === _.id)
+        ).on {case ((((ug, o), u), p), (h, user)) => o.id === h.orderId}
+        .map {case ((((ug, o), createdBy), p), op) => (o, p, op.map {case (h, modifiedBy) => (h.status, h.comment, h.changedAt, modifiedBy)}, createdBy)}
         .result
     }.map (items =>
       PaginatedItems.toPage(
         items.map {
-          case (order, product, history) =>
+          case (order, product, history, user) => {
+            val (status, comment, changedAt, lastModifiedBy) = history.getOrElse((models.OrderStatus.OPENED.toString, order.comment, order.createdAt, user))
             models.Order(
               order.id,
               models.Product(product.id, product.name),
               order.count,
-              history.fold(order.comment)(_._2),
-              history.fold(models.OrderStatus.OPENED)(v => models.OrderStatus.withName(v._1)),
-              order.version
+              comment,
+              models.OrderStatus.withName(status),
+              order.version,
+              models.User(lastModifiedBy.id, lastModifiedBy.name),
+              changedAt
             )
+          }
         },
         pagination
       )

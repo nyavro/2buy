@@ -36,7 +36,8 @@ trait CustomFormats extends SprayJsonSupport with DefaultJsonProtocol {
 
   implicit val paginationFormat = jsonFormat3(Pagination)
   implicit val productFormat = jsonFormat2(Product)
-  implicit val orderFormat = jsonFormat6(Order)
+  implicit val userFormat = jsonFormat2(User)
+  implicit val orderFormat = jsonFormat8(Order)
   implicit val groupViewFormat = jsonFormat3(GroupView)
   implicit val ordersFormat = jsonFormat2(PaginatedItems[Order])
   implicit val groupViewListFormat = jsonFormat2(PaginatedItems[GroupView])

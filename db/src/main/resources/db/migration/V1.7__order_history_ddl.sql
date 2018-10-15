@@ -3,6 +3,6 @@ CREATE TABLE "Order_History" (
   changed_by		BIGINT      NOT NULL REFERENCES "User" (id),
   order_count		INT,
   status		    VARCHAR(20) NOT NULL,
-  created_at        TIMESTAMP NOT NULL DEFAULT current_timestamp,
+  changed_at    TIMESTAMP NOT NULL DEFAULT current_timestamp,
   comment		    VARCHAR(250)
 );

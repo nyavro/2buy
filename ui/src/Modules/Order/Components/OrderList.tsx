@@ -33,7 +33,7 @@ interface IStateProps {
 type TProps = IOwnProps & IDispatchProps & IStateProps;
 
 const Right = SortableElement((_) =>
-    (<div className="right-catcher">Right</div>)
+    (<div className="right-catcher"/>)
 );
 
 const SortableItem = SortableElement(({value}) =>
@@ -68,12 +68,12 @@ const SortableItem = SortableElement(({value}) =>
 
 const SortableList = SortableContainer(({items}: IPaginatedItems<IOrderView>) => {
     return (<div>
-        <div className="orders-panel">
-        {items.map((value, index) => (
-            <SortableItem key={`item-${index}`} index={index+1} value={value}/>
-        ))}
+        <div className="orders-panel-row">
+            {items.map((value, index) => (
+                <SortableItem key={`item-${index}`} index={index} value={value}/>
+            ))}
+            <Right key="item-1" index={1} value={0}/>
         </div>
-        <Right key="item-0" index={0} value={0}/>
     </div>);
 });
 
@@ -115,7 +115,9 @@ class OrderListPage extends React.Component<TProps, {}> {
         const {list, groupId} = this.props;
         return (list.status === ELoadingStatus.SUCCESS) ?
             <div className="order-list">
-                <SortableList lockAxis="x" items={(list && list.data && list.data.items || [])} onSortEnd={this.onSortEnd}/>
+                {(list && list.data && list.data.items || []).map(
+                    (item) => <SortableList lockAxis="x" axis="x" items={[item]} onSortEnd={this.onSortEnd}/>
+                )}
                 <Button onClick={this.handleRefresh}>Refresh</Button>
             </div> :
             (groupId ? <SyncLoader className="spinner" loading/> : <div/>)

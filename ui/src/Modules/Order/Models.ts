@@ -1,4 +1,5 @@
 import {IAsyncData, IBackendConfig, IPaginatedItems, IPagination} from 'Libraries/Core/Models';
+import * as React from 'react';
 
 export enum EOrderStatus {
     OPENED = "OPENED",
@@ -50,3 +51,19 @@ export interface IOrderContext {
 export interface IOrderModule {
     order?: IOrderReduxState;
 }
+
+export interface ISwipableContext {
+    isPressed: boolean,
+    onMouseDown: (x: number, y: number) => void;
+    x0: number;
+    x: number;
+}
+
+const defaultContext: ISwipableContext = {
+    isPressed: false,
+    onMouseDown: (x: number, y: number) => console.log(x + ' ' + y),
+    x0: 0,
+    x: 0
+};
+
+export const SwipableContext = React.createContext<ISwipableContext>(defaultContext);

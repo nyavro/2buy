@@ -30,6 +30,7 @@ export interface IOrderService {
     modify(orderId: string, groupId: string, count: number, version: number, comment?: string): Promise<IOrderModified>;
     create(productIds: string[], groupId: string, comment?: string): Promise<string>;
     reject(orderId: string, groupId: string, version: number, comment?: string): Promise<IOrderModified>;
+    close(orderId: string, groupId: string, version: number, comment?: string): Promise<IOrderModified>;
     list(groupId: string, pagination: IPagination): Promise<IPaginatedItems<IOrderView>>;
 }
 
@@ -37,6 +38,7 @@ export interface IOrderActions {
     modify(orderId: string, groupId: string, count: number, version: number, comment?: string): void;
     create(productIds: string[], groupId: string, comment?: string): void;
     reject(orderId: string, groupId: string, version: number, comment?: string): void;
+    close(orderId: string, groupId: string, version: number, comment?: string): void;
     list(groupId: string, pagination: IPagination): void;
 }
 
@@ -51,19 +53,3 @@ export interface IOrderContext {
 export interface IOrderModule {
     order?: IOrderReduxState;
 }
-
-export interface ISwipableContext {
-    isPressed: boolean,
-    onMouseDown: (x: number, y: number) => void;
-    x0: number;
-    x: number;
-}
-
-const defaultContext: ISwipableContext = {
-    isPressed: false,
-    onMouseDown: (x: number, y: number) => console.log(x + ' ' + y),
-    x0: 0,
-    x: 0
-};
-
-export const SwipableContext = React.createContext<ISwipableContext>(defaultContext);

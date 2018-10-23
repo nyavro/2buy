@@ -1,14 +1,19 @@
 import * as React from 'react';
-import {SwipableContext, ISwipableContext} from "../Models";
-import {Motion, spring} from "react-motion";
+import {SwipableContext, ISwipableContext, ESwipeDirection} from './Models';
+import {Motion, spring} from 'react-motion';
+import {CSSProperties} from 'react';
 
 interface IProps {
-    onSwipeRight: () => void;
-    onSwipeLeft: () => void;
+    onSwipeStart?: (direction: ESwipeDirection) => void;
+    onSwipeEnd?: (direction: ESwipeDirection) => void;
+    rightStyle?: CSSProperties;
+    leftStyle?: CSSProperties;
 }
 
 interface IState {
     isActive: boolean;
+    isRight: boolean;
+    isLeft: boolean;
 }
 
 interface IOwnProps {
@@ -22,32 +27,51 @@ type TProps = IProps & IOwnProps;
 class SwipableComponent extends React.Component<TProps, IState> {
 
     state: IState = {
-        isActive: false
+        isActive: false,
+        isLeft: false,
+        isRight: false
     };
 
     handleMouseDown = ({pageX, pageY}: {pageX: number, pageY: number}) => {
         const {onMouseDown} = this.props.context;
         onMouseDown(pageX, pageY);
         this.setState({
-            isActive: true
+            isActive: true,
+            isLeft: false,
+            isRight: false
         });
     };
 
     componentWillReceiveProps(props: TProps) {
         const {isPressed, x0, x} = props.context;
-        const {onSwipeRight, onSwipeLeft} = this.props;
-        if(this.props.context.isPressed && !isPressed) {
-            this.setState({isActive: false});
+        const {onSwipeStart, onSwipeEnd} = this.props;
+        const {isActive, isRight, isLeft} = this.state;
+        if(isActive && this.props.context.isPressed && !isPressed) {
+            let direction = ESwipeDirection.NONE;
+            if (isRight) direction = ESwipeDirection.RIGHT;
+            if (isLeft) direction = ESwipeDirection.LEFT;
+            onSwipeEnd && onSwipeEnd(direction);
+            this.setState(
+                {
+                    isActive: false,
+                    isRight: false,
+                    isLeft: false
+                }
+            );
             return;
         }
         if(this.state.isActive) {
             const dx = x - x0;
             if (Math.abs(dx) > 150) {
                 if (dx > 0) {
-                    onSwipeRight();
+                    onSwipeStart && onSwipeStart(ESwipeDirection.RIGHT);
+                    this.setState({isRight: true});
                 } else {
-                    onSwipeLeft();
+                    onSwipeStart && onSwipeStart(ESwipeDirection.LEFT);
+                    this.setState({isLeft: true});
                 }
+            } else {
+                this.setState({isLeft: false, isRight: false});
             }
         }
     }
@@ -57,8 +81,9 @@ class SwipableComponent extends React.Component<TProps, IState> {
     };
 
     render() {
-        const {isActive} = this.state;
+        const {isActive, isLeft, isRight} = this.state;
         const {x0, x} = this.props.context;
+        const base = (isLeft ? this.props.leftStyle : isRight ? this.props.rightStyle : null) || {};
         const style = isActive ?
             {
                 scale: spring(1.05, springConfig),
@@ -68,7 +93,7 @@ class SwipableComponent extends React.Component<TProps, IState> {
             : {
                 scale: spring(1, springConfig),
                 shadow: spring(1, springConfig),
-                x: 0,//spring(topDeltaX, springConfig),
+                x: 0
             };
         return (
             <Motion style={style}>
@@ -80,6 +105,7 @@ class SwipableComponent extends React.Component<TProps, IState> {
                              transform: `translate3d(${x}px, 0, 0) scale(${scale})`,
                              WebkitTransform: `translate3d(${x}px, 0, 0) scale(${scale})`,
                              zIndex: isActive ? 99 : 1,
+                             ...base
                          }}
                     >
                         {this.props.children}

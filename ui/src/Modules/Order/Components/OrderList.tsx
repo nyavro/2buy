@@ -13,11 +13,11 @@ import {
     MdIndeterminateCheckBox
 } from 'react-icons/md';
 import {SortableElement} from 'react-sortable-hoc';
-import {Motion, spring} from "react-motion";
-import {ISwippableProps, swipable} from 'Modules/Order/Components/SwipableHOC';
 import {OrderItem} from 'Modules/Order/Components/OrderItem';
-import {Swipable} from "./Swipable";
-import {SwipableContainer} from "./SwipableContainer";
+import {Swipable} from 'Libraries/Components/Swipable/Swipable';
+import {SwipableContainer} from 'Libraries/Components/Swipable/SwipableContainer';
+import {ESwipeDirection} from "../../../Libraries/Components/Swipable/Models";
+import {CSSProperties} from "react";
 
 require('../assets/Order.styl');
 require('../assets/nls/ru/Order.json');
@@ -131,31 +131,41 @@ class OrderListPage extends React.Component<TProps, IState> {
         this.handleMouseDown(key, pressLocation, e.touches[0]);
     };
 
-    handleSwipeRight = memoize((id) => () => {
-        console.log('right ' + id);
+    handleSwipeStart = memoize((id) => (direction: ESwipeDirection) => {
+        (direction === ESwipeDirection.LEFT) ? console.log('left ' + id) : console.log('right ' + id);
     });
 
-    handleSwipeLeft = memoize((id) => () => {
-        console.log('left ' + id);
-    });
+    orderHash = (id: string, version: string) => id + "." + version;
 
-    SwipableItem = swipable<IItemProps>(({...props}: IItemProps) => <OrderItem {...props}/>);
+    handleSwipeEnd = memoize((id, version) => (direction: ESwipeDirection) => {
+        if (direction === ESwipeDirection.LEFT) {
+            console.log('left done' + id);
+        } else {
+            if (direction === ESwipeDirection.RIGHT) {
+                const {actions, groupId} = this.props;
+                actions.close(id, groupId, version);
+            }
+            else {
+                console.log('cancelled' + id);
+            }
+        }
+    }, this.orderHash);
 
     render() {
         const {list, groupId} = this.props;
+        const rightStyle: CSSProperties = {
+            backgroundColor: "green"
+        };
         return (list.status === ELoadingStatus.SUCCESS) ?
-            <SwipableContainer>
+            <SwipableContainer className="order-list">
                 {(list && list.data && list.data.items || []).map(
                     (item, i) => {
                         return (
-                            <Swipable onSwipeRight={this.handleSwipeRight(item.id)}
-                                      onSwipeLeft={this.handleSwipeLeft(item.id)}
+                            <Swipable onSwipeStart={this.handleSwipeStart(item.id)}
+                                      onSwipeEnd={this.handleSwipeEnd(item.id, item.version)}
+                                      rightStyle={rightStyle}
                                       key={i}>
-                                <div
-                                    className="demo8-item"
-                                >
-                                    {item.product.name}
-                                </div>
+                                <OrderItem item={item}/>
                             </Swipable>
                         );
                     }

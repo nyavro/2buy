@@ -60,14 +60,14 @@ class GroupListPage extends React.Component<TProps, IState> {
         return (list && list.data && list.data.items || []).map(
             ({id, name, lastActivity}, index) => {
                 return (
-                    <Row key={index} className={'group-item' + (id === activeGroupId ? ' active' : '')} onClick={this.handleGroupSelect(id)}>
+                    <div key={index} className={'group-item' + (id === activeGroupId ? ' active' : '')} onClick={this.handleGroupSelect(id)}>
                         <div className="group-caption">
                             {name}
                         </div>
                         <div className="last-activity">
                             {convert(lastActivity, serverFormatFull, timeFormatShort)}
                         </div>
-                    </Row>
+                    </div>
                 )
             }
         );

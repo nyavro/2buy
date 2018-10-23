@@ -40,6 +40,18 @@ export class OrderService extends AuthorizedRestService implements IOrderService
         ).then((_) => ({groupId: groupId, orderId: orderId}));
     }
 
+    close(orderId: string, groupId: string, version: number, comment?: string) {
+        return this.put(
+            `${this.backendConfig.backend}/order/close`,
+            {
+                orderId: orderId,
+                groupId: groupId,
+                version: version,
+                comment: comment
+            }
+        ).then((_) => ({groupId: groupId, orderId: orderId}));
+    }
+
     list(groupId: string, pagination: IPagination) {
         console.log("order/view");
         return this.post(

@@ -72,7 +72,7 @@ export class ClientLayoutComponent extends React.Component<TProps, IState> {
             <div className="layout-container">
                 <MainMenu i18n={i18n} menuItems={this.menuItems()}/>
                 <Row>
-                    <div className="layout-panel group-panel col-xl-2">
+                    <div className="col-xl-2 layout-panel group-panel">
                         <GroupListPage {...props} onGroupChange={this.handleGroupChange}/>
                     </div>
                     <div className="layout-panel client-layout col-xl-6">

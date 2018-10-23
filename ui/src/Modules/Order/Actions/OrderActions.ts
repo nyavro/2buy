@@ -34,6 +34,14 @@ export class OrderActions extends LoginRedirectActions<IOrderService, IOrderRedu
         );
     }
 
+    close(orderId: string, groupId: string, version: number, comment?: string) {
+        return asyncDispatch<IOrderModified, IOrderReduxState>(
+            this.dispatch,
+            MODIFY_GROUP_ORDER,
+            () => this.service.close(orderId, groupId, version, comment)
+        );
+    }
+
     list(groupId: string, pagination: IPagination) {
         return asyncDispatch<IPaginatedItems<IOrderView>, IOrderReduxState>(
             this.dispatch,

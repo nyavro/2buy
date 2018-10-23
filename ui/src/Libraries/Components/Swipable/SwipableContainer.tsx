@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {SwipableContext, ISwipableContext} from "../Models";
+import {SwipableContext, ISwipableContext} from './Models';
 
 interface IProps {
 }
@@ -8,7 +8,7 @@ interface IState extends ISwipableContext {
 
 }
 
-export class SwipableContainer extends React.Component<IProps, IState> {
+export class SwipableContainer<T> extends React.Component<T, IState> {
 
     state: IState = {
         isPressed: false,
@@ -45,9 +45,11 @@ export class SwipableContainer extends React.Component<IProps, IState> {
 
     render() {
         return (
-            <SwipableContext.Provider value={this.state}>
-                {this.props.children}
-            </SwipableContext.Provider>
+            <div {...this.props}>
+                <SwipableContext.Provider value={this.state}>
+                    {this.props.children}
+                </SwipableContext.Provider>
+            </div>
         )
     }
 }

@@ -23,11 +23,13 @@ class OrderRoute(service: OrderService, notificationService: NotificationService
   case class ModifyRequest(orderId: Long, groupId: Long, count: Int, comment: Option[String], version: Int)
   case class CreateRequest(productIds: Set[Long], groupId: Long, comment: Option[String])
   case class RejectRequest(orderId: Long, groupId: Long, comment: Option[String], version: Int)
+  case class CloseRequest(orderId: Long, groupId: Long, comment: Option[String], version: Int)
 
   implicit val ordersRequestFormat = jsonFormat2(OrdersRequest)
   implicit val modifyRequestFormat = jsonFormat5(ModifyRequest)
   implicit val createRequestFormat = jsonFormat3(CreateRequest)
   implicit val rejectRequestFormat = jsonFormat4(RejectRequest)
+  implicit val closeRequestFormat = jsonFormat4(CloseRequest)
 
   override def route: Route = directives.authenticate { loggedUser =>
     pathPrefix("order") {
@@ -72,6 +74,20 @@ class OrderRoute(service: OrderService, notificationService: NotificationService
         put {
           entity(as[RejectRequest]) { case RejectRequest(orderId, groupId, comment, version) =>
             onComplete(service.reject(orderId, groupId, loggedUser.id, comment, version)) {
+              case Success(updated) =>
+                if (updated>0) {
+                  notificationService.groupOrderChange(groupId)
+                  complete(StatusCodes.OK)
+                } else
+                  complete(StatusCodes.NotAcceptable)
+            }
+          }
+        }
+      } ~
+      path("close") {
+        put {
+          entity(as[CloseRequest]) { case CloseRequest(orderId, groupId, comment, version) =>
+            onComplete(service.close(orderId, groupId, loggedUser.id, comment, version)) {
               case Success(updated) =>
                 if (updated>0) {
                   notificationService.groupOrderChange(groupId)

@@ -12,6 +12,7 @@ import scala.concurrent.{ExecutionContext, Future}
 case class OrderResponse(product: String, count: Int, orderId: Long, state: String, comment: Option[String])
 
 trait OrderService {
+  def close(orderId: Long, groupId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Int]
   def modify(orderId: Long, groupId: Long, initiatorUserId: Long, count: Int, comment: Option[String], version: Int): Future[Int]
   def create(productIds: Set[Long], initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Int]
   def reject(orderId: Long, groupId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Int]
@@ -40,7 +41,7 @@ class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Orde
   override def create(productIds: Set[Long], initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Int] =
     db.run(
       (for {
-        op <- UserGroup.filter(userGroup => userGroup.userId===initiatorUserId && userGroup.groupId===groupId).result.headOption
+        op <- userInGroup(initiatorUserId, groupId)
         if op.isDefined
         _ <- Group.filter(_.id === groupId).map(_.lastActivity).update(new Timestamp(System.currentTimeMillis()))
         res <- Order.map(order => (order.productId, order.createdByUserId, order.groupId, order.comment)) ++=
@@ -99,4 +100,27 @@ class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Orde
         pagination
       )
     )
+
+  override def close(orderId: Long, groupId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Int] =
+    db.run (
+      (for {
+        check <- userInGroup(initiatorUserId, groupId)
+        if check.isDefined
+        up <- Order
+          .filter(order => order.id === orderId && order.version === version && order.groupId === groupId)
+          .map(order => (order.count, order.version))
+          .update(0, version+1)
+        if up > 0
+        _ <- Group
+          .filter(_.id === groupId)
+          .map(_.lastActivity)
+          .update(new Timestamp(System.currentTimeMillis()))
+        ins <- OrderHistory.map(history => (history.orderId, history.changedBy, history.status, history.comment)) +=
+          (orderId, initiatorUserId, "CLOSED", comment)
+      } yield ins).transactionally
+    )
+
+  private def userInGroup(userId: Long, groupId: Long) =
+    UserGroup.filter(userGroup => userGroup.userId === userId && userGroup.groupId === groupId).result.headOption
+
 }

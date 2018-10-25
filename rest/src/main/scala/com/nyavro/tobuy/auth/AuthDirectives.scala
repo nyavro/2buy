@@ -1,10 +1,8 @@
 package com.nyavro.tobuy.auth
 
+import akka.http.scaladsl.model.StatusCodes._
 import akka.http.scaladsl.server._
 import com.nyavro.tobuy.services.security.{TokenService, TokenUser}
-import akka.http.scaladsl.model.StatusCodes._
-import akka.http.scaladsl.model.headers.HttpChallenges
-import akka.http.scaladsl.server.AuthenticationFailedRejection.CredentialsRejected
 
 class AuthDirectives(tokenService:TokenService) {
 
@@ -18,7 +16,7 @@ class AuthDirectives(tokenService:TokenService) {
     headerValueByName(TokenHeader).map(tokenService.parseToken)
       .flatMap {
         case Some(user) => provide(user)
-        case _ => reject(AuthenticationFailedRejection(CredentialsRejected, HttpChallenges.oAuth2("2buy")))
+        case _ => complete(Unauthorized)
       }
   }
 }

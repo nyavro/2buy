@@ -18,8 +18,10 @@ import {Swipable} from 'Libraries/Components/Swipable/Swipable';
 import {SwipableContainer} from 'Libraries/Components/Swipable/SwipableContainer';
 import {ESwipeDirection} from "../../../Libraries/Components/Swipable/Models";
 import {CSSProperties} from "react";
+import Demo from "./Demo";
 
-require('../assets/Order.styl');
+// require('../assets/Order.styl');
+require('../assets/Demo.styl');
 require('../assets/nls/ru/Order.json');
 
 interface IOwnProps {
@@ -37,52 +39,8 @@ interface IStateProps {
 
 type TProps = IOwnProps & IDispatchProps & IStateProps;
 
-const Right = SortableElement((_) =>
-    (<div className="right-catcher"/>)
-);
-
-const SortableItem = SortableElement(({value}) =>
-    {
-        const {id, version, product, count, comment, status} = value;
-        let Icon = MdCheckBoxOutlineBlank;
-        switch(status) {
-            case EOrderStatus.CLOSED:
-                Icon = MdCheckBox;
-                break;
-            case EOrderStatus.REJECTED:
-                Icon = MdIndeterminateCheckBox;
-        }
-        return (
-            <Row className="order-item">
-                <Col className="order-caption">
-                    {product.name}
-                </Col>
-                <Col className="order" lg={1}>
-                    {count > 1 ? count : ''}
-                </Col>
-                <Col className="comment" lg={1}>
-                    {comment && <MdComment/>}
-                </Col>
-                <Col className="status" lg={1}>
-                    <Icon/>
-                </Col>
-            </Row>
-        );
-    }
-);
-
-interface IItemProps {
-    item: IOrderView;
-    className: string;
-    style: {};
-    onMouseDown: (a: any) => void;
-    onTouchStart: (a: any) => void;
-}
-
 interface IState {
 }
-
-
 
 class OrderListPage extends React.Component<TProps, IState> {
 
@@ -156,21 +114,25 @@ class OrderListPage extends React.Component<TProps, IState> {
         const rightStyle: CSSProperties = {
             backgroundColor: "green"
         };
+        const comp = (<SwipableContainer className="order-list noselect">
+            {(list && list.data && list.data.items || []).map(
+                (item, i) => {
+                    return (
+                        <Swipable onSwipeStart={this.handleSwipeStart(item.id)}
+                                  onSwipeEnd={this.handleSwipeEnd(item.id, item.version)}
+                                  rightStyle={rightStyle}
+                                  key={i}>
+                            <OrderItem item={item}/>
+                        </Swipable>
+                    );
+                }
+            )}
+        </SwipableContainer>);
         return (list.status === ELoadingStatus.SUCCESS) ?
-            <SwipableContainer className="order-list">
-                {(list && list.data && list.data.items || []).map(
-                    (item, i) => {
-                        return (
-                            <Swipable onSwipeStart={this.handleSwipeStart(item.id)}
-                                      onSwipeEnd={this.handleSwipeEnd(item.id, item.version)}
-                                      rightStyle={rightStyle}
-                                      key={i}>
-                                <OrderItem item={item}/>
-                            </Swipable>
-                        );
-                    }
-                )}
-            </SwipableContainer> :
+                <SwipableContainer className="order-list noselect">
+                    <Demo/>
+                </SwipableContainer>
+            :
             (groupId ? <SyncLoader className="spinner" loading/> : <div/>)
     }
 }

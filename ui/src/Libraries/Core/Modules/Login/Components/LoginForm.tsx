@@ -72,6 +72,7 @@ export class LoginFormComponent extends React.Component<IProps, IState> {
                             color="primary"
                             block
                             disabled={isLoading}
+                            type="submit"
                             onClick={this.handleSubmit}>
                             {i18n.t('Login:Form.Submit.label')}
                         </Button>

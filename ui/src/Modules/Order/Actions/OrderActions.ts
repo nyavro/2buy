@@ -1,7 +1,7 @@
 import {
     CREATE_GROUP_ORDER,
     LIST_GROUP_ORDERS,
-    MODIFY_GROUP_ORDER
+    MODIFY_GROUP_ORDER, ORDER_DONE
 } from './ActionTypes';
 import {LoginRedirectActions} from 'Libraries/Core/Actions';
 import {asyncDispatch} from 'Libraries/Core/Utils/ReduxUtils';
@@ -29,7 +29,7 @@ export class OrderActions extends LoginRedirectActions<IOrderService, IOrderRedu
     reject(orderId: string, groupId: string, version: number, comment?: string) {
         return asyncDispatch<IOrderModified, IOrderReduxState>(
             this.dispatch,
-            MODIFY_GROUP_ORDER,
+            ORDER_DONE,
             () => this.service.reject(orderId, groupId, version, comment)
         );
     }
@@ -37,7 +37,7 @@ export class OrderActions extends LoginRedirectActions<IOrderService, IOrderRedu
     close(orderId: string, groupId: string, version: number, comment?: string) {
         return asyncDispatch<IOrderModified, IOrderReduxState>(
             this.dispatch,
-            MODIFY_GROUP_ORDER,
+            ORDER_DONE,
             () => this.service.close(orderId, groupId, version, comment)
         );
     }

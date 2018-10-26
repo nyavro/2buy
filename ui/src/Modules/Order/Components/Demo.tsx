@@ -1,154 +1,70 @@
+import {memoize} from 'lodash';
 import * as React from 'react';
-import {TransitionMotion, spring, presets} from 'react-motion';
-import {ChangeEvent, FormEvent} from "react";
+import {presets, spring, TransitionMotion} from 'react-motion';
+import {EOrderStatus, IOrderActions, IOrderView} from '../Models';
+import {IPaginatedItems} from 'Libraries/Core/Models';
 
 require('../assets/Demo.styl');
 
 interface IProps {
-}
-
-interface ITodo {
-    key: string;
-    data: {
-        text: string;
-        isDone: boolean;
-    }
+    list: IPaginatedItems<IOrderView>;
+    actions: IOrderActions;
+    groupId: string;
 }
 
 interface IState {
-    todos: ITodo[];
-    value: string;
-    selected: string;
 }
 
 export default class Demo extends React.Component<IProps, IState> {
 
-    state: IState = {
-        todos: [
-            // key is creation date
-            {key: 't1', data: {text: 'Board the plane', isDone: false}},
-            {key: 't2', data: {text: 'Sleep', isDone: false}},
-            {key: 't3', data: {text: 'Try to finish conference slides', isDone: false}},
-            {key: 't4', data: {text: 'Eat cheese and drink wine', isDone: false}},
-            {key: 't5', data: {text: 'Go around in Uber', isDone: false}},
-            {key: 't6', data: {text: 'Talk with conf attendees', isDone: false}},
-            {key: 't7', data: {text: 'Show Demo 1', isDone: false}},
-            {key: 't8', data: {text: 'Show Demo 2', isDone: false}},
-            {key: 't9', data: {text: 'Lament about the state of animation', isDone: false}},
-            {key: 't10', data: {text: 'Show Secret Demo', isDone: false}},
-            {key: 't11', data: {text: 'Go home', isDone: false}},
-        ],
-        value: '',
-        selected: 'all',
-    };
-
-    // logic from todo, unrelated to animation
-    handleChange = ({target: {value}}: ChangeEvent<HTMLInputElement>) => {
-        this.setState({value});
-    };
-
-    handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        const newItem = {
-            key: 't' + Date.now(),
-            data: {text: this.state.value, isDone: false},
-        };
-        // append at head
-        this.setState({todos: [newItem].concat(this.state.todos)});
-    };
-
-    handleDone = (doneKey: string) => {
-        this.setState({
-            todos: this.state.todos.map(todo => {
-                const {key, data: {text, isDone}} = todo;
-                return key === doneKey
-                    ? {key: key, data: {text: text, isDone: !isDone}}
-                    : todo;
-            }),
-        });
-    };
-
-    handleToggleAll = () => {
-        const allNotDone = this.state.todos.every(({data}) => data.isDone);
-        this.setState({
-            todos: this.state.todos.map(({key, data: {text}}) => (
-                {key: key, data: {text: text, isDone: !allNotDone}}
-            )),
-        });
-    };
-
-    handleSelect = (selected: string) => {
-        this.setState({selected});
-    };
-
-    handleClearCompleted = () => {
-        this.setState({todos: this.state.todos.filter(({data}) => !data.isDone)});
-    };
-
-    handleDestroy = (date: string) => {
-        this.setState({todos: this.state.todos.filter(({key}) => key !== date)});
-    };
+    state: IState = {};
 
     // actual animation-related logic
     getDefaultStyles = () => {
-        return this.state.todos.map(todo => ({...todo, style: {height: 0, opacity: 1}}));
+        return this.props.list.items.map(todo => ({data: todo, key: todo.id, style: {height: 0, opacity: 1}}));
     };
 
-    getStyles = () => {
-        const {todos, value, selected} = this.state;
-        return todos.filter(({data: {isDone, text}}) => {
-            return text.toUpperCase().indexOf(value.toUpperCase()) >= 0 &&
-                (selected === 'completed' && isDone ||
-                    selected === 'active' && !isDone ||
-                    selected === 'all');
+    getStyles = () => this.props.list.items.map((todo) =>
+        ({
+            data: todo,
+            key: todo.id,
+            style: {
+                height: spring(60, presets.gentle),
+                opacity: spring(1, presets.gentle),
+            }
         })
-            .map((todo) => {
-                return {
-                    ...todo,
-                    style: {
-                        height: spring(60, presets.gentle),
-                        opacity: spring(1, presets.gentle),
-                    }
-                };
-            });
-    };
+    );
 
-    willEnter() {
-        return {
-            height: 0,
-            opacity: 1,
-        };
-    };
+    willEnter = () => ({
+        height: 0,
+        opacity: 1,
+    });
 
-    willLeave() {
-        return {
-            height: spring(0),
-            opacity: spring(0),
-        };
-    };
+    willLeave = () => ({
+        height: spring(0),
+        opacity: spring(0),
+    });
+
+    orderHash = (id: string, version: string) => id + "." + version;
+
+    handleDone = memoize(
+        (id: string, version: number) => () => {
+            const {actions, groupId} = this.props;
+            actions.close(id, groupId, version);
+        },
+        this.orderHash
+    );
+
+    handleReject = memoize(
+        (key: string) => () => {
+            console.log('Reject: ' + key);
+        }
+    );
 
     render() {
-        const {todos, value, selected} = this.state;
-        const itemsLeft = todos.filter(({data: {isDone}}) => !isDone).length;
         return (
             <section className="todoapp">
-                <header className="header">
-                    <form onSubmit={this.handleSubmit}>
-                        <input
-                            autoFocus={true}
-                            className="new-todo"
-                            placeholder="What needs to be done?"
-                            value={value}
-                            onChange={this.handleChange}
-                        />
-                    </form>
-                </header>
                 <section className="main">
-                    <input
-                        className="toggle-all"
-                        type="checkbox"
-                        checked={itemsLeft === 0} style={{display: todos.length === 0 ? 'none' : 'inline'}}
-                        onChange={this.handleToggleAll}/>
                     <TransitionMotion
                         defaultStyles={this.getDefaultStyles()}
                         styles={this.getStyles()}
@@ -156,19 +72,19 @@ export default class Demo extends React.Component<IProps, IState> {
                         willEnter={this.willEnter}>
                         {styles =>
                             <ul className="todo-list">
-                                {styles.map(({key, style, data: {isDone, text}}) =>
-                                    <li key={key} style={style} className={isDone ? 'completed' : ''}>
+                                {styles.map(({key, style, data: {id, version, product, status}}) =>
+                                    <li key={key} style={style}>
                                         <div className="view">
                                             <input
                                                 className="toggle"
                                                 type="checkbox"
-                                                onChange={this.handleDone.bind(null, key)}
-                                                checked={isDone}
+                                                onChange={this.handleDone(id, version)}
+                                                checked={status === EOrderStatus.CLOSED}
                                             />
-                                            <label>{text}</label>
+                                            <label>{product.name}</label>
                                             <button
                                                 className="destroy"
-                                                onClick={this.handleDestroy.bind(null, key)}
+                                                onClick={this.handleReject(key)}
                                             />
                                         </div>
                                     </li>
@@ -177,39 +93,6 @@ export default class Demo extends React.Component<IProps, IState> {
                         }
                     </TransitionMotion>
                 </section>
-                <footer className="footer">
-                    <span className="todo-count">
-                        <strong>
-                            {itemsLeft}
-                        </strong> {itemsLeft === 1 ? 'item' : 'items'} left
-                    </span>
-                    <ul className="filters">
-                        <li>
-                            <a
-                                className={selected === 'all' ? 'selected' : ''}
-                                onClick={this.handleSelect.bind(null, 'all')}>
-                                All
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                className={selected === 'active' ? 'selected' : ''}
-                                onClick={this.handleSelect.bind(null, 'active')}>
-                                Active
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                className={selected === 'completed' ? 'selected' : ''}
-                                onClick={this.handleSelect.bind(null, 'completed')}>
-                                Completed
-                            </a>
-                        </li>
-                    </ul>
-                    <button className="clear-completed" onClick={this.handleClearCompleted}>
-                        Clear completed
-                    </button>
-                </footer>
             </section>
         );
     };

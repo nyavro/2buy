@@ -13,6 +13,7 @@ export enum EActionTypes {
     CREATE_ITEM,
     LOAD_ITEM,
     UPDATE_ITEM,
+    REMOVE_ITEM,
     LOAD_LIST
 }
 

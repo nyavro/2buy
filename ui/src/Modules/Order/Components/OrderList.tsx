@@ -93,7 +93,7 @@ class OrderListPage extends React.Component<TProps, IState> {
         (direction === ESwipeDirection.LEFT) ? console.log('left ' + id) : console.log('right ' + id);
     });
 
-    orderHash = (id: string, version: string) => id + "." + version;
+    orderHash = (id: string, version: number) => id + "." + version;
 
     handleSwipeEnd = memoize((id, version) => (direction: ESwipeDirection) => {
         if (direction === ESwipeDirection.LEFT) {
@@ -130,7 +130,7 @@ class OrderListPage extends React.Component<TProps, IState> {
         </SwipableContainer>);
         return (list.status === ELoadingStatus.SUCCESS) ?
                 <SwipableContainer className="order-list noselect">
-                    <Demo/>
+                    <Demo list={list.data} actions={this.props.actions} groupId={this.props.groupId}/>
                 </SwipableContainer>
             :
             (groupId ? <SyncLoader className="spinner" loading/> : <div/>)

@@ -4,6 +4,7 @@ import java.util.Date
 
 import akka.http.scaladsl.marshallers.sprayjson.SprayJsonSupport
 import com.nyavro.tobuy.models._
+import com.nyavro.tobuy.order.OrderFilter
 import org.joda.time.DateTime
 import org.joda.time.format.DateTimeFormat
 import spray.json.{DefaultJsonProtocol, DeserializationException, JsString, JsValue, JsonFormat}
@@ -37,8 +38,9 @@ trait CustomFormats extends SprayJsonSupport with DefaultJsonProtocol {
   implicit val paginationFormat = jsonFormat3(Pagination)
   implicit val productFormat = jsonFormat2(Product)
   implicit val userFormat = jsonFormat2(User)
-  implicit val orderFormat = jsonFormat8(Order)
+  implicit val orderFormat = jsonFormat10(Order)
   implicit val groupViewFormat = jsonFormat3(GroupView)
   implicit val ordersFormat = jsonFormat2(PaginatedItems[Order])
   implicit val groupViewListFormat = jsonFormat2(PaginatedItems[GroupView])
+  implicit val filterFormat = jsonFormat1(OrderFilter)
 }

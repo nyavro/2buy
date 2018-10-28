@@ -9,118 +9,131 @@ import com.nyavro.tobuy.models.{PaginatedItems, Pagination}
 
 import scala.concurrent.{ExecutionContext, Future}
 
+case class OrderFilter(status: Option[String])
+
 case class OrderResponse(product: String, count: Int, orderId: Long, state: String, comment: Option[String])
 
 trait OrderService {
   def close(orderId: Long, groupId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Int]
   def modify(orderId: Long, groupId: Long, initiatorUserId: Long, count: Int, comment: Option[String], version: Int): Future[Int]
-  def create(productIds: Set[Long], initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Int]
+  def create(productId: Long, count: Int, initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Long]
   def reject(orderId: Long, groupId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Int]
-  def list(groupId: Long, userId: Long, pagination: Pagination = Pagination()): Future[PaginatedItems[models.Order]]
+  def list(groupId: Long, userId: Long, pagination: Pagination = Pagination(), filter: Option[OrderFilter] = None): Future[PaginatedItems[models.Order]]
 }
 
 class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends OrderService {
 
-  override def modify(orderId: Long, groupId: Long, initiatorUserId: Long, count: Int, comment: Option[String], version: Int): Future[Int] =
-    db.run(
-      (for {
-        up <- Order
-          .filter(order => order.id === orderId && order.version === version && order.groupId === groupId)
-          .map(order => (order.count, order.version))
-          .update(count, version+1)
-        if up > 0
-        _ <- Group
-          .filter(_.id === groupId)
-          .map(_.lastActivity)
-          .update(new Timestamp(System.currentTimeMillis()))
-        ins <- OrderHistory.map(history => (history.orderId, history.changedBy, history.status, history.comment)) +=
-          (orderId, initiatorUserId, if (count==0) "CLOSED" else "OPENED", comment)
-      } yield ins).transactionally
-    )
-
-  override def create(productIds: Set[Long], initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Int] =
+  override def create(productId: Long, count: Int, initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Long] = {
+    val status = "OPENED"
+    val ts = new Timestamp(System.currentTimeMillis())
     db.run(
       (for {
         op <- userInGroup(initiatorUserId, groupId)
         if op.isDefined
-        _ <- Group.filter(_.id === groupId).map(_.lastActivity).update(new Timestamp(System.currentTimeMillis()))
-        res <- Order.map(order => (order.productId, order.createdByUserId, order.groupId, order.comment)) ++=
-          productIds.map(productId => (productId, initiatorUserId, groupId, comment))
-      } yield res.getOrElse(0)).transactionally
+        orderId <- Order.returning(Order.map(_.id)) += OrderRow(0L, productId, initiatorUserId, groupId, count, ts, initiatorUserId, ts, status, comment)
+        _ <- updateGroup(groupId, ts)
+        _ <- updateHistory(orderId, initiatorUserId, count, comment, status)
+      } yield orderId).transactionally
     )
+  }
 
-  override def reject(orderId: Long, groupId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Int] =
+  override def modify(orderId: Long, groupId: Long, initiatorUserId: Long, count: Int, comment: Option[String], version: Int): Future[Int] = {
+    val status = if (count==0) "CLOSED" else "OPENED"
+    val ts = new Timestamp(System.currentTimeMillis())
     db.run(
       (for {
-        items <- Order
-          .filter(order => order.id===orderId && order.version === version && order.groupId === groupId)
-          .map(_.version)
-          .update(version+1)
-        if items>0
-        _ <- Group
-          .filter(_.id === groupId)
-          .map(_.lastActivity)
-          .update(new Timestamp(System.currentTimeMillis()))
-        ins <- OrderHistory.map(history => (history.orderId, history.changedBy, history.status, history.comment)) +=
-          (orderId, initiatorUserId, "REJECTED", comment)
-      } yield ins).transactionally
+        check <- userInGroup(initiatorUserId, groupId)
+        if check.isDefined
+        up <- updateOrder(orderId, groupId, initiatorUserId, count, comment, version, status, ts)
+        if up > 0
+        _ <- updateGroup(groupId, ts)
+        _ <- updateHistory(orderId, initiatorUserId, count, comment, status)
+      } yield up).transactionally
     )
+  }
 
-  override def list(groupId: Long, userId: Long, pagination: Pagination = Pagination()): Future[PaginatedItems[models.Order]] =
+  override def reject(orderId: Long, groupId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Int] = {
+    val status = "REJECTED"
+    val ts = new Timestamp(System.currentTimeMillis())
+    db.run(
+      (for {
+        check <- userInGroup(initiatorUserId, groupId)
+        if check.isDefined
+        up <- updateOrder(orderId, groupId, initiatorUserId, 0, comment, version, status, ts)
+        if up > 0
+        _ <- updateGroup(groupId, ts)
+        _ <- updateHistory(orderId, initiatorUserId, 0, comment, status)
+      } yield up).transactionally
+    )
+  }
+
+  override def close(orderId: Long, groupId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Int] = {
+    val status = "CLOSED"
+    val ts = new Timestamp(System.currentTimeMillis())
+    db.run(
+      (for {
+        check <- userInGroup(initiatorUserId, groupId)
+        if check.isDefined
+        up <- updateOrder(orderId, groupId, initiatorUserId, 0, comment, version, status, ts)
+        if up > 0
+        _ <- updateGroup(groupId, new Timestamp(System.currentTimeMillis()))
+        _ <- updateHistory(orderId, initiatorUserId, 0, comment, status)
+      } yield up).transactionally
+    )
+  }
+
+  override def list(groupId: Long, userId: Long, pagination: Pagination, filter: Option[OrderFilter]): Future[PaginatedItems[models.Order]] =
     db.run {
       UserGroup
         .filter(ug => ug.groupId === groupId && ug.userId === userId)
         .join(Order).on(_.groupId === _.groupId)
-        .join(User).on{case ((_, o), user) => o.createdByUserId === user.id}
+        .join(User).on{case ((ug, o), uc) => o.createdByUserId === uc.id}
+        .join(User).on{case (((ug, o), uc), um) => o.modifiedByUserId === um.id}
+        .join(Product).on {case ((((ug, o), uc), um), p) => o.productId === p.id}
         .drop(pagination.offsetValue)
         .take(pagination.countValue + 1)
-        .join(Product).on {case (((ug, o), u), p) => o.productId === p.id}
-        .joinLeft(
-          OrderHistory.join(User).on(_.changedBy === _.id)
-        ).on {case ((((ug, o), u), p), (h, user)) => o.id === h.orderId}
-        .map {case ((((ug, o), createdBy), p), op) => (o, p, op.map {case (h, modifiedBy) => (h.status, h.comment, h.changedAt, modifiedBy)}, createdBy)}
+        .map {case ((((_, o), uc), um), p) => (o, p, uc, um)}
         .result
     }.map (items =>
       PaginatedItems.toPage(
         items.map {
-          case (order, product, history, user) => {
-            val (status, comment, changedAt, lastModifiedBy) = history.getOrElse((models.OrderStatus.OPENED.toString, order.comment, order.createdAt, user))
+          case (order, product, creator, modifier) =>
             models.Order(
               order.id,
               models.Product(product.id, product.name),
               order.count,
-              comment,
-              models.OrderStatus.withName(status),
+              order.comment,
+              models.OrderStatus.withName(order.status),
               order.version,
-              models.User(lastModifiedBy.id, lastModifiedBy.name),
-              changedAt
+              models.User(creator.id, creator.name),
+              order.createdAt,
+              models.User(modifier.id, modifier.name),
+              order.modifiedAt
             )
-          }
         },
         pagination
       )
     )
 
-  override def close(orderId: Long, groupId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Int] =
-    db.run (
-      (for {
-        check <- userInGroup(initiatorUserId, groupId)
-        if check.isDefined
-        up <- Order
-          .filter(order => order.id === orderId && order.version === version && order.groupId === groupId)
-          .map(order => (order.count, order.version))
-          .update(0, version+1)
-        if up > 0
-        _ <- Group
-          .filter(_.id === groupId)
-          .map(_.lastActivity)
-          .update(new Timestamp(System.currentTimeMillis()))
-        ins <- OrderHistory.map(history => (history.orderId, history.changedBy, history.status, history.comment)) +=
-          (orderId, initiatorUserId, "CLOSED", comment)
-      } yield ins).transactionally
-    )
-
   private def userInGroup(userId: Long, groupId: Long) =
     UserGroup.filter(userGroup => userGroup.userId === userId && userGroup.groupId === groupId).result.headOption
 
+  private def updateGroup(groupId: Long, ts: Timestamp) = {
+    Group
+      .filter(_.id === groupId)
+      .map(_.lastActivity)
+      .update(ts)
+  }
+
+  private def updateOrder(orderId: Long, groupId: Long, initiatorUserId: Long, count: Int, comment: Option[String], version: Int, status: String, ts: Timestamp) = {
+    Order
+      .filter(order => order.id === orderId && order.version === version && order.groupId === groupId)
+      .map(order => (order.count, order.modifiedByUserId, order.modifiedAt, order.status, order.comment, order.version))
+      .update(count, initiatorUserId, ts, status, comment, version + 1)
+  }
+
+  private def updateHistory(orderId: Long, initiatorUserId: Long, count: Int, comment: Option[String], status: String) = {
+    OrderHistory.map(history => (history.orderId, history.changedBy, history.status, history.orderCount, history.comment)) +=
+      (orderId, initiatorUserId, status, Some(count), comment)
+  }
 }

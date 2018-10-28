@@ -78,8 +78,9 @@ object Test extends LazyLogging {
         //----Product-list---
         products <- productService.list().map(log("products:"))
         //----Order-create
-        groupUserCreatesOrder <- orderService.create(Set(product1, product2), u2Id, group1Id, None).map(log("create order:"))
-        nonGroupUserFailsToCreateOrder <- orderService.create(Set(product2, product3), u1Id, group2Id, None).recover{case _ => "Cannot create order in group"}.map(log("create order:"))
+        groupUserCreatesOrder1 <- orderService.create(product1, 1, u2Id, group1Id, None).map(log("create order:"))
+        groupUserCreatesOrder2 <- orderService.create(product2, 1, u2Id, group1Id, None).map(log("create order:"))
+        nonGroupUserFailsToCreateOrder <- orderService.create(product3, 1, u1Id, group2Id, None).recover{case _ => "Cannot create order in group"}.map(log("create order:"))
         //----Order-list
         list1 <- orderService.list(group1Id, u1Id).map(log("group orders:"))
         if list1.items.nonEmpty

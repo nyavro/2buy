@@ -18,6 +18,8 @@ case class Order(
   comment: Option[String],
   status: OrderStatus.Value,
   version: Int,
+  createdBy: User,
+  createdAt: Date,
   lastModifiedBy: User,
   lastModifiedAt: Date
 )

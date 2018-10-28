@@ -1,7 +1,8 @@
 package com.nyavro.tobuy
 
+import com.nyavro.tobuy.SampleDataGenerator.createOrders
 import com.nyavro.tobuy.group.GroupServiceImpl
-import com.nyavro.tobuy.order.OrderServiceImpl
+import com.nyavro.tobuy.order.{OrderService, OrderServiceImpl}
 import com.nyavro.tobuy.product.ProductServiceImpl
 import com.nyavro.tobuy.services.security.HashService
 import com.nyavro.tobuy.user.UserServiceImpl
@@ -10,7 +11,8 @@ import com.typesafe.scalalogging.LazyLogging
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.util.{Failure, Success}
+import scala.concurrent.Future
+import scala.util.{Failure, Random, Success}
 
 class SampleDataGenerator
 
@@ -34,6 +36,13 @@ object SampleDataGenerator extends LazyLogging {
     logger.debug(msg + v)
     v
   }
+
+  val random = new Random()
+
+  def createOrders(ordersService: OrderService, products: Set[Long], initiatorUserId: Long, groupId: Long): Future[Set[Long]] =
+    Future.sequence(
+      products.map(p => ordersService.create(p, 1 + random.nextInt(3), initiatorUserId, groupId, None))
+    )
 
   def main(args: Array[String]): Unit = {
     val db = Database.forConfig("2buy")
@@ -98,18 +107,18 @@ object SampleDataGenerator extends LazyLogging {
         p19 <- productService.add("Huevo").map(log("new product:"))
         p20 <- productService.add("Helado").map(log("new product:"))
         //----Order----
-        _ <- orderService.create(Set(p2, p3, p5), u1, g1, None).map(log("create order:"))
-        _ <- orderService.create(Set(p11, p13), u2, g1, None).map(log("create order:"))
-        _ <- orderService.create(Set(p17, p19), u3, g1, None).map(log("create order:"))
-        _ <- orderService.create(Set(p7), u4, g1, None).map(log("create order:"))
-        _ <- orderService.create(Set(p2, p4), u2, g2, None).map(log("create order:"))
-        _ <- orderService.create(Set(p8), u8, g2, None).map(log("create order:"))
-        _ <- orderService.create(Set(p16), u9, g2, None).map(log("create order:"))
-        _ <- orderService.create(Set(p1, p2, p3, p5), u2, g3, None).map(log("create order:"))
-        _ <- orderService.create(Set(p8, p13), u3, g3, None).map(log("create order:"))
-        _ <- orderService.create(Set(p6, p9), u5, g4, None).map(log("create order:"))
-        _ <- orderService.create(Set(p10, p12, p14), u6, g4, None).map(log("create order:"))
-        _ <- orderService.create(Set(p15, p18, p20), u7, g4, None).map(log("create order:"))
+        _ <- createOrders(orderService, Set(p2, p3, p5), u1, g1).map(log("create order:"))
+        _ <- createOrders(orderService, Set(p11, p13), u2, g1).map(log("create order:"))
+        _ <- createOrders(orderService, Set(p17, p19), u3, g1).map(log("create order:"))
+        _ <- createOrders(orderService, Set(p7), u4, g1).map(log("create order:"))
+        _ <- createOrders(orderService, Set(p2, p4), u2, g2).map(log("create order:"))
+        _ <- createOrders(orderService, Set(p8), u8, g2).map(log("create order:"))
+        _ <- createOrders(orderService, Set(p16), u9, g2).map(log("create order:"))
+        _ <- createOrders(orderService, Set(p1, p2, p3, p5), u2, g3).map(log("create order:"))
+        _ <- createOrders(orderService, Set(p8, p13), u3, g3).map(log("create order:"))
+        _ <- createOrders(orderService, Set(p6, p9), u5, g4).map(log("create order:"))
+        _ <- createOrders(orderService, Set(p10, p12, p14), u6, g4).map(log("create order:"))
+        _ <- createOrders(orderService, Set(p15, p18, p20), u7, g4).map(log("create order:"))
       } yield ()
       total.onComplete {
         case Success(v) => println("Succeeded: " + v)

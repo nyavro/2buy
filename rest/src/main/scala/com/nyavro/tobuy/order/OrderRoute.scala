@@ -19,15 +19,15 @@ class OrderRoute(service: OrderService, notificationService: NotificationService
   implicit val materializer: ActorMaterializer
 ) extends RouteProvider with CustomFormats with Directives {
 
-  case class OrdersRequest(groupId: Long, pagination: Pagination)
+  case class OrdersRequest(groupId: Long, pagination: Pagination, filter: Option[OrderFilter])
   case class ModifyRequest(orderId: Long, groupId: Long, count: Int, comment: Option[String], version: Int)
-  case class CreateRequest(productIds: Set[Long], groupId: Long, comment: Option[String])
+  case class CreateRequest(productId: Long, count: Int, groupId: Long, comment: Option[String])
   case class RejectRequest(orderId: Long, groupId: Long, comment: Option[String], version: Int)
   case class CloseRequest(orderId: Long, groupId: Long, comment: Option[String], version: Int)
 
-  implicit val ordersRequestFormat = jsonFormat2(OrdersRequest)
+  implicit val ordersRequestFormat = jsonFormat3(OrdersRequest)
   implicit val modifyRequestFormat = jsonFormat5(ModifyRequest)
-  implicit val createRequestFormat = jsonFormat3(CreateRequest)
+  implicit val createRequestFormat = jsonFormat4(CreateRequest)
   implicit val rejectRequestFormat = jsonFormat4(RejectRequest)
   implicit val closeRequestFormat = jsonFormat4(CloseRequest)
 
@@ -35,9 +35,9 @@ class OrderRoute(service: OrderService, notificationService: NotificationService
     pathPrefix("order") {
       path("view") {
         post {
-          entity(as[OrdersRequest]) { case OrdersRequest(groupId, pagination) =>
+          entity(as[OrdersRequest]) { case OrdersRequest(groupId, pagination, filter) =>
             complete(
-              service.list(groupId, loggedUser.id, pagination)
+              service.list(groupId, loggedUser.id, pagination, filter)
             )
           }
         }
@@ -58,8 +58,8 @@ class OrderRoute(service: OrderService, notificationService: NotificationService
       } ~
       path("create") {
         post {
-          entity(as[CreateRequest]) { case CreateRequest(productIds, groupId, comment) =>
-            onComplete(service.create(productIds, loggedUser.id, groupId, comment)) {
+          entity(as[CreateRequest]) { case CreateRequest(productId, count, groupId, comment) =>
+            onComplete(service.create(productId, count, loggedUser.id, groupId, comment)) {
               case Success(updated) =>
                 if (updated>0) {
                   notificationService.groupOrderChange(groupId)

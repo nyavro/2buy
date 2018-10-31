@@ -82,19 +82,28 @@ class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Orde
     )
   }
 
-  override def list(groupId: Long, userId: Long, pagination: Pagination, filter: Option[OrderFilter]): Future[PaginatedItems[models.Order]] =
+  implicit class QueryOps[E, U](query: Query[E, U, Seq]) {
+    def maybeFilter[T](filter: Option[T])(f: T => E => Rep[Boolean]) = filter.map(v => query.filter(f(v))).getOrElse(query)
+  }
+
+  override def list(groupId: Long, userId: Long, pagination: Pagination, filter: Option[OrderFilter]): Future[PaginatedItems[models.Order]] = {
     db.run {
-      UserGroup
+      val value = UserGroup
         .filter(ug => ug.groupId === groupId && ug.userId === userId)
         .join(Order).on(_.groupId === _.groupId)
-        .join(User).on{case ((ug, o), uc) => o.createdByUserId === uc.id}
-        .join(User).on{case (((ug, o), uc), um) => o.modifiedByUserId === um.id}
-        .join(Product).on {case ((((ug, o), uc), um), p) => o.productId === p.id}
+        .join(User).on { case ((ug, o), uc) => o.createdByUserId === uc.id }
+        .join(User).on { case (((ug, o), uc), um) => o.modifiedByUserId === um.id }
+        .join(Product).on { case ((((ug, o), uc), um), p) => o.productId === p.id }
+        .maybeFilter(filter.flatMap(_.status)) {
+          status => {case ((((_, o), _), _), _) => o.status === status}
+        }
+      value
         .drop(pagination.offsetValue)
         .take(pagination.countValue + 1)
-        .map {case ((((_, o), uc), um), p) => (o, p, uc, um)}
+        .map { case ((((_, o), uc), um), p) => (o, p, uc, um) }
+        .sortBy(_._1.createdAt)
         .result
-    }.map (items =>
+    }.map(items =>
       PaginatedItems.toPage(
         items.map {
           case (order, product, creator, modifier) =>
@@ -114,6 +123,7 @@ class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Orde
         pagination
       )
     )
+  }
 
   private def userInGroup(userId: Long, groupId: Long) =
     UserGroup.filter(userGroup => userGroup.userId === userId && userGroup.groupId === groupId).result.headOption

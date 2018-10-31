@@ -24,11 +24,13 @@ export interface IOrderView {
 export interface IOrderModified {
     orderId: string;
     groupId: string;
+    status: EOrderStatus;
+    version: number;
 }
 
 export interface IOrderService {
     modify(orderId: string, groupId: string, count: number, version: number, comment?: string): Promise<IOrderModified>;
-    create(productIds: string[], groupId: string, comment?: string): Promise<string>;
+    create(productId: string, count: number, groupId: string, comment?: string): Promise<string>;
     reject(orderId: string, groupId: string, version: number, comment?: string): Promise<IOrderModified>;
     close(orderId: string, groupId: string, version: number, comment?: string): Promise<IOrderModified>;
     list(groupId: string, pagination: IPagination): Promise<IPaginatedItems<IOrderView>>;
@@ -36,7 +38,7 @@ export interface IOrderService {
 
 export interface IOrderActions {
     modify(orderId: string, groupId: string, count: number, version: number, comment?: string): void;
-    create(productIds: string[], groupId: string, comment?: string): void;
+    create(productId: string, count: number, groupId: string, comment?: string): void;
     reject(orderId: string, groupId: string, version: number, comment?: string): void;
     close(orderId: string, groupId: string, version: number, comment?: string): void;
     list(groupId: string, pagination: IPagination): void;

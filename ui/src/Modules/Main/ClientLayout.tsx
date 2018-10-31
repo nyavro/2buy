@@ -13,7 +13,7 @@ import {Row} from 'reactstrap';
 import {MdDashboard, MdExitToApp} from 'react-icons/md';
 import {MainMenu} from 'Libraries/Components/MainMenu';
 import GroupListPage from "../Group/Pages/GroupListPage";
-import OrderList from "../Order/Components/OrderList";
+import OrderList from '../Order/Pages/OrderListPage';
 
 require('./assets/nls/ru/ClientApp.json');
 require('./assets/styles/Layout.styl');

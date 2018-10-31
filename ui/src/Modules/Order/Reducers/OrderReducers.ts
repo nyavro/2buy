@@ -25,7 +25,7 @@ export const orderReducer = (prevState: IOrderReduxState = initialState(), actio
                         ...prevState.data,
                         items: (index === -1) ?
                             prevState.data.items :
-                            [...prevState.data.items.slice(0, index), ...prevState.data.items.slice(index + 1)]
+                            [...prevState.data.items.slice(0, index), {...prevState.data.items[index], ...action.payload},  ...prevState.data.items.slice(index + 1)]
                     }
                 };
             }

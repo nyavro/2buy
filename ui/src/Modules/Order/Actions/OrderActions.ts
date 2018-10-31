@@ -18,11 +18,11 @@ export class OrderActions extends LoginRedirectActions<IOrderService, IOrderRedu
         );
     }
 
-    create(productIds: string[], groupId: string, comment?: string) {
+    create(productId: string, count: number, groupId: string, comment?: string) {
         return asyncDispatch<string, IOrderReduxState>(
             this.dispatch,
             CREATE_GROUP_ORDER,
-            () => this.service.create(productIds, groupId, comment)
+            () => this.service.create(productId, count, groupId, comment)
         );
     }
 

@@ -1,26 +1,32 @@
 import * as React from 'react';
 import {EOrderStatus, IOrderView} from '../Models';
 import {Col, Row} from 'reactstrap';
-import {MdCheckBox, MdCheckBoxOutlineBlank, MdComment, MdIndeterminateCheckBox} from 'react-icons/md';
+import {MdCheckBoxOutlineBlank, MdComment} from 'react-icons/md';
 
 interface IProps {
     item: IOrderView;
+    onDone: (id: string, version: number) => void;
 }
 
 export class OrderItem extends React.Component<IProps, {}> {
 
+    handleDone = () => {
+        const {item: {id, version}, onDone} = this.props;
+        onDone(id, version);
+    };
+
     render() {
-        const {product, count, comment, status} = this.props.item;
-        let Icon = MdCheckBoxOutlineBlank;
-        switch(status) {
-            case EOrderStatus.CLOSED:
-                Icon = MdCheckBox;
-                break;
-            case EOrderStatus.REJECTED:
-                Icon = MdIndeterminateCheckBox;
-        }
+        const {item: {product, count, comment, status}} = this.props;
         return (
             <Row className="order-item">
+                <Col lg={1}>
+                    <input
+                        className="toggle"
+                        type="checkbox"
+                        onChange={this.handleDone}
+                        checked={status === EOrderStatus.CLOSED}
+                    />
+                </Col>
                 <Col className="order-caption">
                     {product.name}
                 </Col>
@@ -29,9 +35,6 @@ export class OrderItem extends React.Component<IProps, {}> {
                 </Col>
                 <Col className="comment" lg={1}>
                     {comment && <MdComment/>}
-                </Col>
-                <Col className="status" lg={1}>
-                    <Icon/>
                 </Col>
             </Row>
         );

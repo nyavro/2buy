@@ -1,5 +1,5 @@
 import {AuthorizedRestService} from 'Libraries/Core/Services/AuthorizedRestService';
-import {IOrderService} from '../Models';
+import {EOrderStatus, IOrderService} from '../Models';
 import {IPagination} from 'Libraries/Core/Models';
 
 export class OrderService extends AuthorizedRestService implements IOrderService {
@@ -14,14 +14,15 @@ export class OrderService extends AuthorizedRestService implements IOrderService
                 version: version,
                 comment: comment
             }
-        ).then((_) => ({groupId: groupId, orderId: orderId}));
+        ).then((_) => ({groupId: groupId, orderId: orderId, status: EOrderStatus.OPENED, version: version + 1}));
     }
 
-    create(productIds: string[], groupId: string, comment?: string) {
+    create(productId: string, count: number, groupId: string, comment?: string) {
         return this.post(
             `${this.backendConfig.backend}/order/create`,
             {
-                productIds: productIds,
+                productId: productId,
+                count: count,
                 groupId: groupId,
                 comment: comment
             }
@@ -37,7 +38,7 @@ export class OrderService extends AuthorizedRestService implements IOrderService
                 version: version,
                 comment: comment
             }
-        ).then((_) => ({groupId: groupId, orderId: orderId}));
+        ).then((_) => ({groupId: groupId, orderId: orderId, status: EOrderStatus.REJECTED, version: version + 1}));
     }
 
     close(orderId: string, groupId: string, version: number, comment?: string) {
@@ -49,7 +50,7 @@ export class OrderService extends AuthorizedRestService implements IOrderService
                 version: version,
                 comment: comment
             }
-        ).then((_) => ({groupId: groupId, orderId: orderId}));
+        ).then((_) => ({groupId: groupId, orderId: orderId, status: EOrderStatus.CLOSED, version: version + 1}));
     }
 
     list(groupId: string, pagination: IPagination) {

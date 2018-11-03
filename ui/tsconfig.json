@@ -2,8 +2,8 @@
     "compilerOptions": {
         "allowJs": true,
         "noImplicitAny": true,
-        "module": "es6",
-        "target": "es2015",
+        "module": "esnext",
+        "target": "esnext",
         "jsx": "react",
         "baseUrl": "src",
         "moduleResolution": "node",

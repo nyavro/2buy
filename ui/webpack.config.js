@@ -12,21 +12,12 @@ const envStringified = {
     }
 };
 
-const capitalizeFirstLetter = (string) => (string.charAt(0).toUpperCase() + string.slice(1));
-
-const filterKeys = (obj, predicate) => Object.keys(obj).filter(predicate).reduce((res, key) => {res[key] = obj[key]; return res;}, {});
-
-const allEntries = {
-    'client': './src/index.tsx'
-};
-
-const entries = (env) => filterKeys(allEntries, (key) => [env.ENDPOINT].includes(key));
-
 module.exports = (cmdEnv) => {
-    const env = {...process.env, ...cmdEnv};
-    const buildDir = 'dist' + path.sep + env.ENDPOINT;
+    const buildDir = 'dist' + path.sep + 'client';
     return {
-        entry: entries(env),
+        entry: {
+            'client': './src/index.tsx'
+        },
         devServer: {
             contentBase: path.join(__dirname, buildDir),
             compress: true,
@@ -34,11 +25,11 @@ module.exports = (cmdEnv) => {
         },
         output: {
             filename: "[name].js",
+            chunkFilename: "[name].chunk.js",
             path: path.resolve(__dirname, buildDir)
         },
         module: {
             rules: [
-                // работа с файлами js
                 {
                     test: /\.(tsx|ts)?$/,
                     exclude: /node_modules/,
@@ -46,7 +37,6 @@ module.exports = (cmdEnv) => {
                         {
                             loader: 'ts-loader'
                         }
-                        // TODO прикрутить babel-loader
                     ]
                 },
                 { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
@@ -71,22 +61,13 @@ module.exports = (cmdEnv) => {
                         use: ['css-loader', 'postcss-loader', 'stylus-loader']
                     })
                 },
-                // работы с картинками
                 {
                     test: /\.(png|svg|jpg|gif)$/,
                     use: [
-                        // загрузка копирование картинок
                         {
                             loader: 'file-loader',
                             options: {
                                 outputPath: 'images/'
-                            }
-                        },
-                        // оптимизация изображений
-                        {
-                            loader: 'image-webpack-loader',
-                            options: {
-                                bypassOnDebug: true
                             }
                         }
                     ]

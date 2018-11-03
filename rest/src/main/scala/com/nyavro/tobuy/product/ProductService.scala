@@ -7,7 +7,7 @@ import com.nyavro.tobuy.models
 
 trait ProductService {
   def add(name: String): Future[Long]
-  def list(): Future[Seq[(Long, String)]]
+  def list(): Future[Seq[models.Product]]
 }
 
 class ProductServiceImpl(db: Database)(implicit ec: ExecutionContext) extends ProductService {
@@ -16,8 +16,10 @@ class ProductServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Pr
       Product.returning(Product.map(_.id)) += ProductRow(0L, name)
     }
 
-  override def list(): Future[Seq[(Long, String)]] =
+  override def list(): Future[Seq[models.Product]] =
     db.run {
       Product.map(item => (item.id, item.name)).result
-    }
+    }.map (
+      _.map (item => models.Product(item._1, item._2))
+    )
 }

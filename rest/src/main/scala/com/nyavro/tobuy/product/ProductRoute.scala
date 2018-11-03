@@ -7,6 +7,7 @@ import akka.http.scaladsl.server.Route
 import akka.stream.ActorMaterializer
 import com.nyavro.tobuy.auth.AuthDirectives
 import com.nyavro.tobuy.services.RouteProvider
+import com.nyavro.tobuy.util.CustomFormats
 import spray.json.DefaultJsonProtocol
 
 import scala.concurrent.ExecutionContext
@@ -17,7 +18,7 @@ class ProductRoute(service: ProductService, directives: AuthDirectives)(
   implicit val system: ActorSystem,
   implicit val executor: ExecutionContext,
   implicit val materializer: ActorMaterializer
-) extends RouteProvider with SprayJsonSupport with DefaultJsonProtocol {
+) extends RouteProvider with CustomFormats {
   implicit val format = jsonFormat1(ProductCreate)
 
   override def route: Route = directives.authenticate { _ =>

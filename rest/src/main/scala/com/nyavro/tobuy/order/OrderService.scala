@@ -2,10 +2,10 @@ package com.nyavro.tobuy.order
 
 import java.sql.Timestamp
 
-import com.nyavro.tobuy.gen.Tables._
-import slick.jdbc.PostgresProfile.api._
 import com.nyavro.tobuy._
+import com.nyavro.tobuy.gen.Tables._
 import com.nyavro.tobuy.models.{PaginatedItems, Pagination}
+import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
 

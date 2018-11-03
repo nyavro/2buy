@@ -32,7 +32,7 @@ class MessagingListenerComponent extends React.Component<TProps, {}> {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<{}>, {context}: IOwnProps) => ({
-    actions: new MessagingActions(MessagingService, context.messaging, dispatch)
+    actions: new MessagingActions(MessagingService, context.config, dispatch)
 });
 
 export const MessagingListener = connect(null, mapDispatchToProps)(MessagingListenerComponent);

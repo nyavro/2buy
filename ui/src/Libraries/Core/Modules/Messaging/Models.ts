@@ -21,5 +21,5 @@ export interface IMessagingActions {
 }
 
 export interface IMessagingContext {
-    messaging: IBackendConfig;
+    config: IBackendConfig;
 }

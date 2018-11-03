@@ -4,6 +4,7 @@ import {applyMiddleware, combineReducers, createStore, Dispatch} from 'redux';
 import {Provider} from 'react-redux';
 import {groupReducer, initialState as groupInitial} from 'Modules/Group/Reducers/GroupReducers'
 import {orderReducer, initialState as orderInitial} from 'Modules/Order/Reducers/OrderReducers'
+import {productReducer, initialState as productInitial} from 'Modules/Product/Reducers/ProductReducers'
 import {HashRouter as Router, Route, Switch} from 'react-router-dom';
 import LoginPage from 'Libraries/Core/Modules/Login/Pages/LoginPage';
 import {push, routerMiddleware, routerReducer} from 'react-router-redux';
@@ -14,7 +15,6 @@ import {LOGOUT_ACTION} from 'Libraries/Core/Modules/Login/Actions/ActionTypes';
 import {IClientAppState} from 'Modules/Main/Models';
 import './Modules/Main/Config';
 import {ROUTES} from 'Modules/Main/RouterConsts';
-import {dictionaryReducer, initialState as dictionaryInitial} from 'Libraries/Core/Modules/Dictionary/Reducers/DictionaryReducers';
 import {ClientLayout} from 'Modules/Main/ClientLayout';
 import {ClientContext} from 'Modules/Main/Config';
 import {IAuth} from 'Libraries/Core/Modules/Login/Models';
@@ -31,10 +31,10 @@ momentLocalizer();
 
 export const getInitialState = () => ({
     auth: authInitial(),
-    dictionary: dictionaryInitial(),
     notification: notificationInitial(),
     order: orderInitial(),
-    group: groupInitial()
+    group: groupInitial(),
+    product: productInitial()
 });
 
 export const store = createStore(
@@ -45,11 +45,11 @@ export const store = createStore(
         return combineReducers(
             {
                 auth: loginReducer,
-                dictionary: dictionaryReducer,
                 routing: routerReducer,
                 order: orderReducer,
                 notification: notificationReducer,
-                group: groupReducer
+                group: groupReducer,
+                product: productReducer
         })(state, action);
     },
     applyMiddleware(routerMiddleware(createHistory())),

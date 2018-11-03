@@ -15,6 +15,7 @@ require('../assets/nls/ru/Order.json');
 interface IOwnProps {
     context: IOrderContext;
     groupId?: string;
+    selectProduct: {loader: () => Promise<{Component: React.ComponentType<any>}>};
 }
 
 interface IDispatchProps {
@@ -30,7 +31,7 @@ type TProps = IOwnProps & IDispatchProps & IStateProps;
 interface IState {
 }
 
-class OrderListPage extends React.Component<TProps, IState> {
+class OrderListPageComponent extends React.Component<TProps, IState> {
 
     state: IState = {
     };
@@ -57,13 +58,13 @@ class OrderListPage extends React.Component<TProps, IState> {
     render() {
         const {list, groupId} = this.props;
         return (list.status === ELoadingStatus.SUCCESS) ?
-            <OrderList list={list.data} actions={this.props.actions} groupId={this.props.groupId}/> :
+            <OrderList list={list.data} actions={this.props.actions} groupId={this.props.groupId} selectProduct={this.props.selectProduct}/> :
             (groupId ? <SyncLoader className="spinner" loading/> : <div/>)
     }
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<IOrderModule>, {context}: IOwnProps) => ({
-    actions: new OrderActions(OrderService, context.order, dispatch)
+    actions: new OrderActions(OrderService, context.config, dispatch)
 });
 
 const mapStateToProps = (state: IOrderModule) => {
@@ -72,4 +73,4 @@ const mapStateToProps = (state: IOrderModule) => {
     }
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(OrderListPage);
+export const OrderListPage = connect(mapStateToProps, mapDispatchToProps)(OrderListPageComponent);

@@ -35,7 +35,7 @@ export interface IGroupReduxState {
 }
 
 export interface IGroupContext {
-    group: IBackendConfig;
+    config: IBackendConfig;
 }
 
 export interface IGroupModule {

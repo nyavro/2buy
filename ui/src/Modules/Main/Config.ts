@@ -31,18 +31,7 @@ export const ClientContext: (errorsRoute: string) => IClientAppContext = (errors
         backend: base,
         errorsRoute: errorsRoute
     };
-    const loginMicroservice = {
-        backend: base,
-        errorsRoute: errorsRoute
-    };
     return {
-        login: loginMicroservice,
-        dictionary: clientMicroservice,
-        orderRequest: clientMicroservice,
-        client: clientMicroservice,
-        messaging: clientMicroservice,
-        car: clientMicroservice,
-        order: clientMicroservice,
-        group: clientMicroservice
+        config: clientMicroservice
     }
 };

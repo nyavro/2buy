@@ -33,7 +33,7 @@ export interface ILoginReduxState {
 }
 
 export interface ILoginContext {
-    login: IBackendConfig;
+    config: IBackendConfig;
 }
 
 /**

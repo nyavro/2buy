@@ -6,7 +6,7 @@ import './assets/styles/CustomSelect.styl';
 
 interface IProps {
     options: IOption[];
-    placeholder: string;
+    placeholder?: string;
     onChange: (id: string) => void;
 }
 
@@ -26,12 +26,12 @@ export class CustomSelect extends React.Component<IProps, IState> {
     renderOptions = () => {
         const {placeholder, options} = this.props;
         let res = options.map(({id, name}, index) => <option className="customOption" value={id} key={index}>{name}</option>);
-        !this.state.selected && res.splice(0, 0, <option className="customOption">{placeholder}</option>);
+        placeholder && !this.state.selected && res.splice(0, 0, <option className="customOption">{placeholder}</option>);
         return res;
     };
 
     render() {
-        return <CustomInput type="select" onChange={this.handleSelect} className={!this.state.selected && 'notSelected'}>
+        return <CustomInput id="customSelect" type="select" onChange={this.handleSelect} className={!this.state.selected && 'notSelected'}>
             {this.renderOptions()}
         </CustomInput>
     }

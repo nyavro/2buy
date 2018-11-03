@@ -32,7 +32,7 @@ interface IState {
 
 type TProps = IOwnProps & IDispatchProps & IStateProps;
 
-class GroupListPage extends React.Component<TProps, IState> {
+class GroupListPageComponent extends React.Component<TProps, IState> {
 
     state: IState = {
     };
@@ -86,7 +86,7 @@ class GroupListPage extends React.Component<TProps, IState> {
 }
 
 const mapDispatchToProps = (dispatch: Dispatch<IGroupModule>, {context}: IOwnProps) => ({
-    actions: new GroupActions(GroupService, context.group, dispatch)
+    actions: new GroupActions(GroupService, context.config, dispatch)
 });
 
 const mapStateToProps = (state: IGroupModule) => {
@@ -95,4 +95,4 @@ const mapStateToProps = (state: IGroupModule) => {
     }
 };
 
-export default connect(mapStateToProps, mapDispatchToProps)(GroupListPage);
+export const GroupListPage = connect(mapStateToProps, mapDispatchToProps)(GroupListPageComponent);

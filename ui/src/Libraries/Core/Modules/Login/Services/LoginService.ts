@@ -10,7 +10,7 @@ export class LoginService implements ILoginService {
 
     constructor (context: ILoginContext) {
         this.restService = new RestService();
-        this.baseUrl = context.login.backend;
+        this.baseUrl = context.config.backend;
     }
 
     login = (credentials:ICredentials) => {

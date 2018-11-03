@@ -1,15 +1,17 @@
 import * as React from 'react';
 import {Key} from 'react';
-import {PlainStyle} from 'react-motion';
 import {IOrderActions, IOrderView} from '../Models';
 import {IPaginatedItems} from 'Libraries/Core/Models';
 import {Button} from "reactstrap";
-import {MdAdd, MdClear} from "react-icons/md";
-import {Accordeon} from "./Accordeon";
+import {MdAdd, MdCheckCircle, MdClear} from "react-icons/md";
 import {HidableList} from "./HidableList";
-import {HidableActions} from "./HidableActions";
-import {HidablePanel} from "./HidablePanel";
-import {HidableWrapper} from "./HidableWrapper";
+import {AsyncComponent} from 'Libraries/Components/AsyncComponent';
+import {ToggleLayout} from 'Libraries/Components/SmoothLayout/ToggleLayout';
+import {ToggleComponent} from 'Libraries/Components/SmoothLayout/ToggleComponent';
+import {SmoothComponent} from 'Libraries/Components/SmoothLayout/SmoothComponent';
+import {OrderItem} from './OrderItem';
+import {SmoothList} from "../../../Libraries/Components/SmoothLayout/SmoothList";
+import {ToggleItem} from "../../../Libraries/Components/SmoothLayout/ToggleItem";
 
 require('../assets/Demo.styl');
 
@@ -17,6 +19,9 @@ interface IProps {
     list: IPaginatedItems<IOrderView>;
     actions: IOrderActions;
     groupId: string;
+    selectProduct: {
+        loader: () => Promise<{Component: React.ComponentType<any>}>
+    };
 }
 
 interface IState {
@@ -26,24 +31,20 @@ interface IState {
 export class OrderList extends React.Component<IProps, IState> {
 
     state: IState = {
-        activeKeys: ['actions', 'list']
+        activeKeys: ['actions', 'list', 'add']
     };
-
-    // actual animation-related logic
-
-    orderHash = (id: string, version: string) => id + "." + version;
 
     handleAdd = () => {
         console.log('add');
         this.setState({
-            activeKeys: ['app', 'actions']
+            activeKeys: ['app', 'actions', 'done']
         })
     };
 
     handleCancel = () => {
         console.log('cancel');
         this.setState({
-            activeKeys: ['list', 'actions']
+            activeKeys: ['list', 'actions', 'add']
         })
     };
 
@@ -52,33 +53,50 @@ export class OrderList extends React.Component<IProps, IState> {
         actions.close(id, groupId, version);
     };
 
+    handleSelect = (productId: string, productName: string) => {
+        console.log(productId + ":" + productName);
+        this.setState({
+            activeKeys: ['list', 'actions']
+        })
+    };
+
+    renderItem = (item: IOrderView) => (<div className="view">
+        <OrderItem item={item} onDone={this.handleDone}/>
+    </div>);
+
     render() {
         return (
             <section className="orders-list">
-                <Accordeon activeKeys={this.state.activeKeys}>
-                    <HidableList key="list" visible list={this.props.list} onDone={this.handleDone}/>
-                    <HidableWrapper
-                        hiddenStyle={{opacity: 0, scale: 0.1}}
-                        visibleStyle={{opacity: 1, scale: 1}}
-                        key="app"
-                    >
-                        Here
-                    </HidableWrapper>
-                    <HidableWrapper
-                        hiddenStyle={{opacity: 0, scale: 0.1}}
-                        visibleStyle={{opacity: 1, scale: 1}}
-                        key="actions"
-                    >
-                        <div className="action">
-                            <Button onClick={this.handleAdd}>
-                                <MdAdd className="add-btn"/>
-                            </Button>
-                            <Button onClick={this.handleCancel}>
-                                <MdClear className="cancel-btn"/>
-                            </Button>
-                        </div>
-                    </HidableWrapper>
-                </Accordeon>
+                <ToggleLayout activeKeys={this.state.activeKeys}>
+                    <ToggleComponent blockKey="list">
+                        <SmoothList list={this.props.list.items} customRender={this.renderItem} className="todo-list"/>
+                    </ToggleComponent>
+                    <ToggleComponent blockKey="app">
+                        <SmoothComponent>
+                            <AsyncComponent bundle={this.props.selectProduct} onSelect={this.handleSelect}/>
+                        </SmoothComponent>
+                    </ToggleComponent>
+                    <ToggleComponent blockKey="actions">
+                        <SmoothComponent>
+                            <div className="action">
+                                <ToggleComponent blockKey="add">
+                                    <ToggleItem>
+                                        <Button onClick={this.handleAdd}>
+                                            <MdAdd className="icon"/>
+                                        </Button>
+                                    </ToggleItem>
+                                </ToggleComponent>
+                                <ToggleComponent blockKey="done">
+                                    <ToggleItem>
+                                        <Button onClick={this.handleCancel}>
+                                            <MdCheckCircle className="icon"/>
+                                        </Button>
+                                    </ToggleItem>
+                                </ToggleComponent>
+                            </div>
+                        </SmoothComponent>
+                    </ToggleComponent>
+                </ToggleLayout>
             </section>
         );
     };

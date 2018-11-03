@@ -49,7 +49,7 @@ export interface IOrderReduxState {
 }
 
 export interface IOrderContext {
-    order: IBackendConfig;
+    config: IBackendConfig;
 }
 
 export interface IOrderModule {

@@ -1,5 +1,5 @@
 require('dotenv').config();
-const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const CleanWebpackPlugin = require('clean-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
@@ -11,6 +11,7 @@ const envStringified = {
         NODE_ENV: JSON.stringify(process.env['NODE_ENV'])
     }
 };
+const devMode = process.env.NODE_ENV !== 'production';
 
 module.exports = (cmdEnv) => {
     const buildDir = 'dist' + path.sep + 'client';
@@ -41,25 +42,21 @@ module.exports = (cmdEnv) => {
                 },
                 { enforce: "pre", test: /\.js$/, loader: "source-map-loader" },
                 {
-                    test: /\.(css)$/,
-                    use: ExtractTextPlugin.extract({
-                        fallback: 'style-loader',
-                        use: ['css-loader', 'postcss-loader']
-                    })
-                },
-                {
-                    test: /\.(less)$/,
-                    use: ExtractTextPlugin.extract({
-                        fallback: 'style-loader',
-                        use: ['css-loader', 'postcss-loader', 'less-loader']
-                    })
-                },
-                {
                     test: /\.(styl)$/,
-                    use: ExtractTextPlugin.extract({
-                        fallback: 'style-loader',
-                        use: ['css-loader', 'postcss-loader', 'stylus-loader']
-                    })
+                    use: [
+                        devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
+                        "css-loader",
+                        "postcss-loader",
+                        "stylus-loader"
+                    ]
+                },
+                {
+                    test: /\.(css)$/,
+                    use: [
+                        devMode ? 'style-loader' : MiniCssExtractPlugin.loader,
+                        "css-loader",
+                        "postcss-loader"
+                    ]
                 },
                 {
                     test: /\.(png|svg|jpg|gif)$/,
@@ -85,7 +82,6 @@ module.exports = (cmdEnv) => {
                         }
                     ]
                 },
-                // нужен для загрузки через цсс
                 { test: /\.(woff|woff2|eot|ttf)(\?v=[0-9]\.[0-9]\.[0-9])?$/, loader: 'url-loader?limit=100000' }
             ]
         },
@@ -101,8 +97,13 @@ module.exports = (cmdEnv) => {
         },
         plugins: [
             new webpack.DefinePlugin(envStringified),
-            new CleanWebpackPlugin([buildDir]), // чистка директории dist
-            new ExtractTextPlugin('[name].css'), // весь css кладет в отдельный бандл
+            new CleanWebpackPlugin([buildDir]),
+            new MiniCssExtractPlugin({
+                // Options similar to the same options in webpackOptions.output
+                // both options are optional
+                filename: "[name].css",
+                chunkFilename: "[id].css"
+            }),
             new CopyPlugin(
                 ['manifest.json'].map(
                     (item) => ({

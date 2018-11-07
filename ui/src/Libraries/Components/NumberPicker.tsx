@@ -42,7 +42,9 @@ export class NumberPicker extends React.Component<IProps> {
                     </div>
                 </div>
                 <div className="ctrl">
-                    <Input type="text" onChange={this.handleSelect} value={this.props.value}/>
+                    <div className="number-input">
+                        <Input type="text" onChange={this.handleSelect} value={this.props.value}/>
+                    </div>
                 </div>
                 <div className="ctrl">
                     <div className="up">

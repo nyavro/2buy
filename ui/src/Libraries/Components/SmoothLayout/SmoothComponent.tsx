@@ -35,7 +35,7 @@ export class SmoothComponent extends React.Component<IProps, IState> {
 
     render() {
         return (
-            <Motion
+            this.props.visible && <Motion
                 defaultStyle={this.props.hiddenStyle}
                 style={this.props.visible ? this.state.visible : this.state.hidden}
             >

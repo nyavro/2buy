@@ -54,6 +54,6 @@ export class ToggleComponent extends React.Component<IProps, {}> {
                     )
                 }
             </ToggleContext.Consumer>
-        )
+        );
     }
 }

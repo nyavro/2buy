@@ -4,7 +4,7 @@ import java.sql.Timestamp
 
 import com.nyavro.tobuy._
 import com.nyavro.tobuy.gen.Tables._
-import com.nyavro.tobuy.models.{PaginatedItems, Pagination}
+import com.nyavro.tobuy.models.{OrderStatus, PaginatedItems, Pagination}
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -16,14 +16,14 @@ case class OrderResponse(product: String, count: Int, orderId: Long, state: Stri
 trait OrderService {
   def close(orderId: Long, groupId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Int]
   def modify(orderId: Long, groupId: Long, initiatorUserId: Long, count: Int, comment: Option[String], version: Int): Future[Int]
-  def create(productId: Long, count: Int, initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Long]
+  def create(productId: Long, count: Int, initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Option[models.Order]]
   def reject(orderId: Long, groupId: Long, initiatorUserId: Long, comment: Option[String], version: Int): Future[Int]
   def list(groupId: Long, userId: Long, pagination: Pagination = Pagination(), filter: Option[OrderFilter] = None): Future[PaginatedItems[models.Order]]
 }
 
 class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends OrderService {
 
-  override def create(productId: Long, count: Int, initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Long] = {
+  override def create(productId: Long, count: Int, initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Option[models.Order]] = {
     val status = "OPENED"
     val ts = new Timestamp(System.currentTimeMillis())
     db.run(
@@ -33,7 +33,25 @@ class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Orde
         orderId <- Order.returning(Order.map(_.id)) += OrderRow(0L, productId, initiatorUserId, groupId, count, ts, initiatorUserId, ts, status, comment)
         _ <- updateGroup(groupId, ts)
         _ <- updateHistory(orderId, initiatorUserId, count, comment, status)
-      } yield orderId).transactionally
+        v <- getById(orderId).headOption
+      } yield v)
+        .transactionally
+        .map (
+          _.map {case ((o, p), u) =>
+            models.Order(
+              o.id,
+              models.Product(p.id, p.name),
+              o.count,
+              o.comment,
+              OrderStatus.withName(o.status),
+              o.version,
+              models.User(u.id, u.name),
+              o.createdAt,
+              models.User(u.id, u.name),
+              o.modifiedAt
+            )
+          }
+        )
     )
   }
 
@@ -86,9 +104,17 @@ class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Orde
     def maybeFilter[T](filter: Option[T])(f: T => E => Rep[Boolean]) = filter.map(v => query.filter(f(v))).getOrElse(query)
   }
 
+  private def getById(id: Long) = {
+    Order
+      .filter(_.id === id)
+      .join(Product).on(_.productId === _.id)
+      .join(User).on { case ((o, p), u) => o.createdByUserId === u.id }
+      .result
+  }
+
   override def list(groupId: Long, userId: Long, pagination: Pagination, filter: Option[OrderFilter]): Future[PaginatedItems[models.Order]] = {
     db.run {
-      val value = UserGroup
+      UserGroup
         .filter(ug => ug.groupId === groupId && ug.userId === userId)
         .join(Order).on(_.groupId === _.groupId)
         .join(User).on { case ((ug, o), uc) => o.createdByUserId === uc.id }
@@ -97,7 +123,6 @@ class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Orde
         .maybeFilter(filter.flatMap(_.status)) {
           status => {case ((((_, o), _), _), _) => o.status === status}
         }
-      value
         .drop(pagination.offsetValue)
         .take(pagination.countValue + 1)
         .map { case ((((_, o), uc), um), p) => (o, p, uc, um) }

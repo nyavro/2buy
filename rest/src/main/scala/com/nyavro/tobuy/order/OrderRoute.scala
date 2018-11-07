@@ -1,5 +1,7 @@
 package com.nyavro.tobuy.order
 
+import java.util.Date
+
 import akka.actor.ActorSystem
 import akka.http.scaladsl.model.StatusCodes
 import akka.http.scaladsl.server.{Directives, Route}
@@ -60,12 +62,9 @@ class OrderRoute(service: OrderService, notificationService: NotificationService
         post {
           entity(as[CreateRequest]) { case CreateRequest(productId, count, groupId, comment) =>
             onComplete(service.create(productId, count, loggedUser.id, groupId, comment)) {
-              case Success(updated) =>
-                if (updated>0) {
-                  notificationService.groupOrderChange(groupId)
-                  complete(StatusCodes.OK)
-                } else
-                  complete(StatusCodes.NotAcceptable)
+              case Success(newOrder) =>
+                notificationService.groupOrderChange(groupId)
+                complete(newOrder)
             }
           }
         }

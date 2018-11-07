@@ -39,7 +39,7 @@ object SampleDataGenerator extends LazyLogging {
 
   val random = new Random()
 
-  def createOrders(ordersService: OrderService, products: Set[Long], initiatorUserId: Long, groupId: Long): Future[Set[Long]] =
+  def createOrders(ordersService: OrderService, products: Set[Long], initiatorUserId: Long, groupId: Long) =
     Future.sequence(
       products.map(p => ordersService.create(p, 1 + random.nextInt(3), initiatorUserId, groupId, None))
     )

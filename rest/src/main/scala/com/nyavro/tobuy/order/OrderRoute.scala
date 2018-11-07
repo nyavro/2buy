@@ -3,7 +3,7 @@ package com.nyavro.tobuy.order
 import java.util.Date
 
 import akka.actor.ActorSystem
-import akka.http.scaladsl.model.StatusCodes
+import akka.http.scaladsl.model.{HttpResponse, StatusCodes}
 import akka.http.scaladsl.server.{Directives, Route}
 import akka.stream.ActorMaterializer
 import com.nyavro.tobuy.auth.AuthDirectives
@@ -13,7 +13,7 @@ import com.nyavro.tobuy.services.RouteProvider
 import com.nyavro.tobuy.util.CustomFormats
 
 import scala.concurrent.ExecutionContext
-import scala.util.Success
+import scala.util.{Failure, Success}
 
 class OrderRoute(service: OrderService, notificationService: NotificationService, directives: AuthDirectives)(
   implicit val system: ActorSystem,
@@ -62,9 +62,11 @@ class OrderRoute(service: OrderService, notificationService: NotificationService
         post {
           entity(as[CreateRequest]) { case CreateRequest(productId, count, groupId, comment) =>
             onComplete(service.create(productId, count, loggedUser.id, groupId, comment)) {
-              case Success(newOrder) =>
+              case Success(Some(newOrder)) =>
                 notificationService.groupOrderChange(groupId)
                 complete(newOrder)
+              case Failure(UnacsessibleGroupModification(msg)) => complete(HttpResponse(StatusCodes.Forbidden, entity = msg))
+              case Failure(ProductAlreadyInGroup(msg)) => complete(HttpResponse(StatusCodes.NotAcceptable, entity = msg))
             }
           }
         }

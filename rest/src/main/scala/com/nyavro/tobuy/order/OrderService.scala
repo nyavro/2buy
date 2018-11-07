@@ -5,6 +5,7 @@ import java.sql.Timestamp
 import com.nyavro.tobuy._
 import com.nyavro.tobuy.gen.Tables._
 import com.nyavro.tobuy.models.{OrderStatus, PaginatedItems, Pagination}
+import slick.dbio.DBIOAction
 import slick.jdbc.PostgresProfile.api._
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -21,6 +22,9 @@ trait OrderService {
   def list(groupId: Long, userId: Long, pagination: Pagination = Pagination(), filter: Option[OrderFilter] = None): Future[PaginatedItems[models.Order]]
 }
 
+case class UnacsessibleGroupModification(message: String) extends Throwable(message)
+case class ProductAlreadyInGroup(message: String) extends Throwable
+
 class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends OrderService {
 
   override def create(productId: Long, count: Int, initiatorUserId: Long, groupId: Long, comment: Option[String]): Future[Option[models.Order]] = {
@@ -28,8 +32,14 @@ class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Orde
     val ts = new Timestamp(System.currentTimeMillis())
     db.run(
       (for {
-        op <- userInGroup(initiatorUserId, groupId)
-        if op.isDefined
+        _ <- userInGroup(initiatorUserId, groupId).flatMap{
+          case None => DBIOAction.failed(UnacsessibleGroupModification(s"User $initiatorUserId has no access to group ${groupId}"))
+          case _ => DBIOAction.successful()
+        }
+        _ <- productInGroup(productId, groupId).flatMap{
+          case None => DBIOAction.successful()
+          case _ => DBIOAction.failed(ProductAlreadyInGroup(s"Product $productId is already in group $groupId"))
+        }
         orderId <- Order.returning(Order.map(_.id)) += OrderRow(0L, productId, initiatorUserId, groupId, count, ts, initiatorUserId, ts, status, comment)
         _ <- updateGroup(groupId, ts)
         _ <- updateHistory(orderId, initiatorUserId, count, comment, status)
@@ -152,6 +162,9 @@ class OrderServiceImpl(db: Database)(implicit ec: ExecutionContext) extends Orde
 
   private def userInGroup(userId: Long, groupId: Long) =
     UserGroup.filter(userGroup => userGroup.userId === userId && userGroup.groupId === groupId).result.headOption
+
+  private def productInGroup(productId: Long, groupId: Long) =
+    Order.filter(order => order.productId === productId && order.groupId === groupId && order.status === "OPENED").result.headOption
 
   private def updateGroup(groupId: Long, ts: Timestamp) = {
     Group

@@ -2,16 +2,14 @@ import * as React from 'react';
 import {Key} from 'react';
 import {IOrderActions, IOrderView} from '../Models';
 import {IPaginatedItems} from 'Libraries/Core/Models';
-import {Button} from "reactstrap";
-import {MdAdd, MdCheckCircle, MdClear} from "react-icons/md";
-import {HidableList} from "./HidableList";
+import {Button} from 'reactstrap';
+import {MdAdd} from 'react-icons/md';
 import {AsyncComponent} from 'Libraries/Components/AsyncComponent';
 import {ToggleLayout} from 'Libraries/Components/SmoothLayout/ToggleLayout';
 import {ToggleComponent} from 'Libraries/Components/SmoothLayout/ToggleComponent';
 import {SmoothComponent} from 'Libraries/Components/SmoothLayout/SmoothComponent';
 import {OrderItem} from './OrderItem';
-import {SmoothList} from "../../../Libraries/Components/SmoothLayout/SmoothList";
-import {ToggleItem} from "../../../Libraries/Components/SmoothLayout/ToggleItem";
+import {SmoothList} from 'Libraries/Components/SmoothLayout/SmoothList';
 
 require('../assets/Demo.styl');
 
@@ -37,7 +35,7 @@ export class OrderList extends React.Component<IProps, IState> {
     handleAdd = () => {
         console.log('add');
         this.setState({
-            activeKeys: ['app', 'actions', 'done']
+            activeKeys: ['app']
         })
     };
 
@@ -60,9 +58,24 @@ export class OrderList extends React.Component<IProps, IState> {
         })
     };
 
-    renderItem = (item: IOrderView) => (<div className="view">
-        <OrderItem item={item} onDone={this.handleDone}/>
-    </div>);
+    renderItem = (item: IOrderView) => (
+        <div className="view">
+            <OrderItem item={item} onDone={this.handleDone}/>
+        </div>
+    );
+
+    handleCreate = (productId: string, count: number) => {
+        this.props.actions.create(productId, count, this.props.groupId, '');
+        this.setState({
+            activeKeys: ['list', 'actions']
+        })
+    };
+
+    handleCancelCreate = () => {
+        this.setState({
+            activeKeys: ['list', 'actions']
+        });
+    };
 
     render() {
         return (
@@ -73,26 +86,15 @@ export class OrderList extends React.Component<IProps, IState> {
                     </ToggleComponent>
                     <ToggleComponent blockKey="app">
                         <SmoothComponent>
-                            <AsyncComponent bundle={this.props.selectProduct} onSelect={this.handleSelect}/>
+                            <AsyncComponent bundle={this.props.selectProduct} onOK={this.handleCreate} onCancel={this.handleCancelCreate}/>
                         </SmoothComponent>
                     </ToggleComponent>
                     <ToggleComponent blockKey="actions">
                         <SmoothComponent>
                             <div className="action">
-                                <ToggleComponent blockKey="add">
-                                    <ToggleItem>
-                                        <Button onClick={this.handleAdd}>
-                                            <MdAdd className="icon"/>
-                                        </Button>
-                                    </ToggleItem>
-                                </ToggleComponent>
-                                <ToggleComponent blockKey="done">
-                                    <ToggleItem>
-                                        <Button onClick={this.handleCancel}>
-                                            <MdCheckCircle className="icon"/>
-                                        </Button>
-                                    </ToggleItem>
-                                </ToggleComponent>
+                                <Button onClick={this.handleAdd}>
+                                    <MdAdd className="icon"/>
+                                </Button>
                             </div>
                         </SmoothComponent>
                     </ToggleComponent>

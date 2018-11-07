@@ -1,8 +1,8 @@
-import {findIndex} from 'lodash';
-import {IOrderModified, IOrderReduxState, IOrderView} from '../Models';
+import {findIndex, concat} from 'lodash';
+import {IOrderReduxState, IOrderView} from '../Models';
 import {ELoadingStatus} from 'Libraries/Core/Enums';
 import {IAsyncData, IFSAAction, IPaginatedItems} from 'Libraries/Core/Models';
-import {LIST_GROUP_ORDERS, ORDER_DONE} from '../Actions/ActionTypes';
+import {CREATE_GROUP_ORDER, LIST_GROUP_ORDERS, ORDER_DONE} from '../Actions/ActionTypes';
 import {createParticle, EActionState} from 'Libraries/Core/Utils/ReduxUtils';
 
 export const initialState = (): IOrderReduxState => {
@@ -16,7 +16,7 @@ export const orderReducer = (prevState: IOrderReduxState = initialState(), actio
         LIST_GROUP_ORDERS,
         prevState.currentOrders,
         action,
-        (action: IFSAAction<IOrderModified>, prevState: IAsyncData<IPaginatedItems<IOrderView>>) => {
+        (action: IFSAAction<any>, prevState: IAsyncData<IPaginatedItems<IOrderView>>) => {
             if (action.type===(ORDER_DONE + EActionState.SUCCESS) && prevState.data) {
                 const index = findIndex(prevState.data.items, {id: action.payload.orderId});
                 return {
@@ -26,6 +26,15 @@ export const orderReducer = (prevState: IOrderReduxState = initialState(), actio
                         items: (index === -1) ?
                             prevState.data.items :
                             [...prevState.data.items.slice(0, index), {...prevState.data.items[index], ...action.payload},  ...prevState.data.items.slice(index + 1)]
+                    }
+                };
+            }
+            if (action.type===(CREATE_GROUP_ORDER + EActionState.SUCCESS) && prevState.data) {
+                return {
+                    ...prevState,
+                    data: {
+                        ...prevState.data,
+                        items: concat([action.payload as IOrderView], prevState.data.items)
                     }
                 };
             }

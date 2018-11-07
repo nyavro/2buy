@@ -7,8 +7,7 @@ import {IGroupContext, IGroupModule, IGroupView} from '../Models';
 import {SyncLoader} from 'react-spinners';
 import {GroupActions} from "../Actions/GroupActions";
 import {GroupService} from "../Services/GroupService";
-import {convert, serverFormatFull, timeFormatShort} from "../../../Libraries/Core/Utils/DateUtils";
-import {Button, Row} from "reactstrap";
+import {convert, serverFormatFull, timeFormatShort} from 'Libraries/Core/Utils/DateUtils';
 
 require('../assets/Group.styl');
 require('../assets/nls/ru/Order.json');
@@ -77,10 +76,7 @@ class GroupListPageComponent extends React.Component<TProps, IState> {
         const {list} = this.props;
         console.log(list.status);
         return (list.status === ELoadingStatus.SUCCESS) ?
-            <div>
-                {this.renderGroups()}
-                <Button onClick={this.handleRefresh}>Refresh</Button>
-            </div> :
+            this.renderGroups() :
             <SyncLoader className="spinner" loading/>
     }
 }

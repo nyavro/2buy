@@ -4,14 +4,14 @@ import {RouteProps} from 'react-router';
 import {ROUTES} from './RouterConsts';
 import {IClientAppContext} from './Models';
 import {translate} from 'react-i18next';
-import {IBackendConfig, IMixedProps} from 'Libraries/Core/Models';
+import {IMixedProps} from 'Libraries/Core/Models';
 import {Dispatch} from 'redux';
 import {MessagingListener} from 'Libraries/Core/Modules/Messaging/Components/MessagingListener';
 import {Row} from 'reactstrap';
 import {MdDashboard, MdExitToApp} from 'react-icons/md';
 import {MainMenu} from 'Libraries/Components/MainMenu';
-import {AsyncComponent} from "../../Libraries/Components/AsyncComponent";
-import {GroupListPage} from "../Group/Pages/GroupListPage";
+import {AsyncComponent} from 'Libraries/Components/AsyncComponent';
+import {GroupListPage} from '../Group/Pages/GroupListPage';
 
 require('./assets/nls/ru/ClientApp.json');
 require('./assets/styles/Layout.styl');
@@ -56,10 +56,6 @@ export class ClientLayoutComponent extends React.Component<TProps, IState> {
 
     selectProduct = {
         loader: () => import ('../Product')
-    };
-
-    handleSelect = (n: number) => {
-        console.log(n);
     };
 
     render() {

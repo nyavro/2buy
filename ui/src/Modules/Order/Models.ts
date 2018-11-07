@@ -30,7 +30,7 @@ export interface IOrderModified {
 
 export interface IOrderService {
     modify(orderId: string, groupId: string, count: number, version: number, comment?: string): Promise<IOrderModified>;
-    create(productId: string, count: number, groupId: string, comment?: string): Promise<string>;
+    create(productId: string, count: number, groupId: string, comment?: string): Promise<IOrderView>;
     reject(orderId: string, groupId: string, version: number, comment?: string): Promise<IOrderModified>;
     close(orderId: string, groupId: string, version: number, comment?: string): Promise<IOrderModified>;
     list(groupId: string, pagination: IPagination): Promise<IPaginatedItems<IOrderView>>;

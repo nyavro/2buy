@@ -21,12 +21,12 @@ export class OrderService extends AuthorizedRestService implements IOrderService
         return this.post(
             `${this.backendConfig.backend}/order/create`,
             {
-                productId: productId,
+                productId: parseInt(productId),
                 count: count,
                 groupId: groupId,
                 comment: comment
             }
-        ).then((_) => groupId);
+        );
     }
 
     reject(orderId: string, groupId: string, version: number, comment?: string) {

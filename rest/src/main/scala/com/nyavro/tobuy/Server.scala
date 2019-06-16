@@ -11,6 +11,7 @@ import com.nyavro.tobuy.auth.{AuthDirectives, AuthRoute}
 import com.nyavro.tobuy.group.{GroupRoute, GroupServiceImpl}
 import com.nyavro.tobuy.notification.NotificationServiceImpl
 import com.nyavro.tobuy.order.{OrderRoute, OrderServiceImpl}
+import com.nyavro.tobuy.point.PointProvider
 import com.nyavro.tobuy.product.{ProductRoute, ProductServiceImpl}
 import com.nyavro.tobuy.services.security.{Base64Wrapper, Cors, HashService, TokenServiceImpl}
 import com.nyavro.tobuy.user.UserServiceImpl
@@ -52,12 +53,15 @@ object Server extends SprayJsonSupport with BasicFormats with DefaultJsonProtoco
     val notificationService = new NotificationServiceImpl()
     val directives = new AuthDirectives(tokenService)
     try {
-      val routes = corsHandler (
-        new AuthRoute(userService, tokenService).route ~
-        new ProductRoute(productService, directives).route ~
-        new GroupRoute(groupService, notificationService, directives).route ~
-        new OrderRoute(orderService, notificationService, directives).route
-      )
+      val routes =
+//        corsHandler (
+//        new AuthRoute(userService, tokenService).route ~
+//        new ProductRoute(productService, directives).route ~
+//        new GroupRoute(groupService, notificationService, directives).route ~
+//        new OrderRoute(orderService, notificationService, directives).route ~
+        new PointProvider(productService).route ~
+        getFromResource("graphql.html")
+//      )
       val port = 8087
       val bindingFuture = Http().bindAndHandle(routes, "localhost", port)
 
